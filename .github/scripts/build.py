@@ -16,7 +16,7 @@ import json
 from datetime import datetime, timezone
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = Path(__file__).resolve().parents[2]  # .github/scripts/build.py -> repo root
 DATA_DIR = ROOT / "data"
 DIST_DIR = ROOT / "dist"
 
@@ -36,7 +36,13 @@ def sort_key(entry: dict) -> tuple:
 def load_entries() -> list[dict]:
     entries: list[dict] = []
 
-    for path in sorted(DATA_DIR.rglob("*.json")):
+    paths = sorted(DATA_DIR.rglob("*.json"))
+    if not paths:
+        # Never fall through to an empty build: that would publish a release telling
+        # customers there is nothing to allowlist.
+        raise SystemExit(f"no source files found under {DATA_DIR} — refusing to build")
+
+    for path in paths:
         doc = json.loads(path.read_text())
         control_plane = doc["control_plane"]
 
@@ -52,12 +58,11 @@ def load_entries() -> list[dict]:
             if source["type"] == "gateway":
                 # Read defensively: the PR diff job builds the base branch's data with this
                 # script, so a schema change must not make the baseline unbuildable.
-                for key in ("status", "airport_code"):
-                    if key in source:
-                        entry[key] = source[key]
+                if "airport_code" in source:
+                    entry["airport_code"] = source["airport_code"]
                 entry["gateway_host"] = doc.get("host")
-                # A provisioned cluster has no published endpoint yet, so it gets no host.
-                # Inventing one would tell customers to resolve a name that does not exist.
+                # A cluster with no published endpoint gets no host. Inventing one would
+                # tell customers to resolve a name that does not exist.
                 if "hostname" in source:
                     entry["host"] = source["hostname"]
             else:
@@ -111,8 +116,6 @@ def main() -> int:
             "generation_timestamp": timestamp,
             "entry_count": len(subset),
             "ip_count": len(flat_ip_list(subset)),
-            "live_count": sum(1 for e in subset if e.get("status") != "provisioned"),
-            "provisioned_count": sum(1 for e in subset if e.get("status") == "provisioned"),
             "entries": subset,
         }
 

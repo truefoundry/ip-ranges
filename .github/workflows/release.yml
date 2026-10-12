@@ -6,7 +6,7 @@ on:
     paths:
       - "data/**"
       - "schema/**"
-      - "scripts/**"
+      - ".github/scripts/**"
   workflow_dispatch:
     inputs:
       dry_run:
@@ -34,7 +34,7 @@ jobs:
           enable-cache: true
 
       - name: Validate source files
-        run: uv run scripts/validate.py
+        run: uv run .github/scripts/validate.py
 
       - name: Refuse to publish placeholder data
         run: |
@@ -76,7 +76,7 @@ jobs:
           fi
 
       - name: Build artifacts
-        run: uv run scripts/build.py --version "${{ steps.version.outputs.version }}"
+        run: uv run .github/scripts/build.py --version "${{ steps.version.outputs.version }}"
 
       - name: Write release notes
         run: |
@@ -84,7 +84,7 @@ jobs:
           if [ -n "${{ steps.previous.outputs.tag }}" ]; then
             ARGS+=(--old "${RUNNER_TEMP}/old.json")
           fi
-          uv run scripts/release_notes.py "${ARGS[@]}"
+          uv run .github/scripts/release_notes.py "${ARGS[@]}"
           cat "${RUNNER_TEMP}/notes.md" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Stop here on a dry run

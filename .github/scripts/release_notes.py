@@ -40,13 +40,9 @@ def describe(entry: dict) -> str:
 
 
 def host_label(entry: dict) -> str:
-    """A provisioned cluster has no endpoint, so say that rather than print empty backticks."""
+    """Not every cluster has a published endpoint; say so rather than print empty backticks."""
     host = entry.get("host")
-    if host:
-        return f"`{host}`"
-    if entry.get("status") == "provisioned":
-        return "_provisioned, no endpoint yet_"
-    return "_no endpoint_"
+    return f"`{host}`" if host else "_no published endpoint_"
 
 
 def ip_sort(cidr: str) -> ipaddress.IPv4Network:
@@ -141,14 +137,11 @@ def main() -> int:
         f"- {plane.upper()} control plane: {REPO}/releases/download/v{version}/{plane}.json"
         for plane in planes
     ]
-    totals = f"**{new_doc['entry_count']} entries, {new_doc['ip_count']} unique IPs**"
-    if new_doc.get("provisioned_count"):
-        totals += f" ({new_doc['live_count']} live, {new_doc['provisioned_count']} provisioned)"
     lines += [
         "- Plain text for firewall scripts: swap `.json` for `.txt` in any URL above.",
         f"- Always-latest instead of pinned: {REPO}/releases/latest/download/nat-ips.json",
         "",
-        f"Totals in this release: {totals}.",
+        f"Totals in this release: **{new_doc['entry_count']} entries, {new_doc['ip_count']} unique IPs**.",
         "",
     ]
 

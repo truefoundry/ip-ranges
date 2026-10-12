@@ -5,14 +5,14 @@ on:
     paths:
       - "data/**"
       - "schema/**"
-      - "scripts/**"
+      - ".github/scripts/**"
       - ".github/workflows/validate.yml"
   push:
     branches: [main]
     paths:
       - "data/**"
       - "schema/**"
-      - "scripts/**"
+      - ".github/scripts/**"
   workflow_dispatch:
 
 permissions:
@@ -29,10 +29,10 @@ jobs:
           enable-cache: true
 
       - name: Validate source files
-        run: uv run scripts/validate.py
+        run: uv run .github/scripts/validate.py
 
       - name: Build artifacts
-        run: uv run scripts/build.py --version 0.0.0-ci
+        run: uv run .github/scripts/build.py --version 0.0.0-ci
 
   diff:
     # Show reviewers exactly which IPs a PR adds or removes, so nobody has to read raw JSON.
@@ -55,19 +55,19 @@ jobs:
 
       - name: Build this branch
         run: |
-          uv run scripts/build.py --version "pr-${{ github.event.pull_request.number }}"
+          uv run .github/scripts/build.py --version "pr-${{ github.event.pull_request.number }}"
           cp dist/nat-ips.json "${RUNNER_TEMP}/new.json"
 
       - name: Build the base branch
         run: |
           git checkout "origin/${{ github.base_ref }}" -- data/
-          uv run scripts/build.py --version "${{ github.base_ref }}"
+          uv run .github/scripts/build.py --version "${{ github.base_ref }}"
           cp dist/nat-ips.json "${RUNNER_TEMP}/old.json"
           git checkout HEAD -- data/
 
       - name: Render diff
         run: |
-          uv run scripts/release_notes.py \
+          uv run .github/scripts/release_notes.py \
             --new "${RUNNER_TEMP}/new.json" \
             --old "${RUNNER_TEMP}/old.json" \
             --out "${RUNNER_TEMP}/diff.md"

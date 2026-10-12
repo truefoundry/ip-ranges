@@ -19,7 +19,7 @@ from pathlib import Path
 
 from jsonschema import Draft202012Validator
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = Path(__file__).resolve().parents[2]  # .github/scripts/validate.py -> repo root
 DATA_DIR = ROOT / "data"
 SCHEMA_PATH = ROOT / "schema" / "nat-ips.schema.json"
 

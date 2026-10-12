@@ -58,14 +58,10 @@
           "pattern": "^[a-z]{3}$",
           "description": "IATA code for the PoP. Required for gateway entries. Not unique: two clusters in the same metro on different clouds share a code."
         },
-        "status": {
-          "enum": ["live", "provisioned"],
-          "description": "Required for gateway entries. 'live' means the regional endpoint is serving; 'provisioned' means the NAT addresses are allocated and reserved but the endpoint is not published yet. Allowlist both — a provisioned IP costs nothing and avoids a rush when the region is activated."
-        },
         "hostname": {
           "type": "string",
           "format": "hostname",
-          "description": "Regional gateway endpoint customers resolve, e.g. mad.gateway.truefoundry.ai. Required when status is 'live'."
+          "description": "Regional gateway endpoint customers resolve, e.g. mad.gateway.truefoundry.ai. Absent on clusters whose NAT addresses are allocated but whose endpoint is not published yet."
         },
         "cluster": {
           "type": "string",
@@ -92,25 +88,7 @@
             "required": ["type"]
           },
           "then": {
-            "required": ["airport_code", "status"]
-          }
-        },
-        {
-          "if": {
-            "properties": { "status": { "const": "live" } },
-            "required": ["status"]
-          },
-          "then": {
-            "required": ["hostname"]
-          }
-        },
-        {
-          "if": {
-            "properties": { "type": { "const": "control_plane" } },
-            "required": ["type"]
-          },
-          "then": {
-            "not": { "required": ["status"] }
+            "required": ["airport_code"]
           }
         }
       ]

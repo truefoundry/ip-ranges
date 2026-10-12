@@ -10,7 +10,6 @@
       "region": "us-east-1",
       "continent": "na",
       "airport_code": "orf",
-      "status": "live",
       "cluster": "tfy-aws-orf-gtw",
       "hostname": "orf.gateway.truefoundry.ai",
       "nat_ips": [
@@ -24,7 +23,6 @@
       "region": "us-east-2",
       "continent": "na",
       "airport_code": "cle",
-      "status": "provisioned",
       "cluster": "tfy-aws-cle-gte",
       "nat_ips": [
         "18.119.53.236/32",
@@ -37,7 +35,6 @@
       "region": "us-west-1",
       "continent": "na",
       "airport_code": "sfo",
-      "status": "provisioned",
       "cluster": "tfy-aws-sfo-gtw",
       "nat_ips": [
         "13.52.112.39/32",
@@ -50,7 +47,6 @@
       "region": "us-west-2",
       "continent": "na",
       "airport_code": "pdx",
-      "status": "provisioned",
       "cluster": "tfy-aws-pdx-gtw",
       "nat_ips": [
         "44.236.36.218/32",
@@ -63,7 +59,6 @@
       "region": "mx-central-1",
       "continent": "na",
       "airport_code": "mex",
-      "status": "provisioned",
       "cluster": "tfy-aws-mex-gtw",
       "nat_ips": [
         "78.13.15.252/32",
@@ -76,7 +71,6 @@
       "region": "southamerica-east1",
       "continent": "sa",
       "airport_code": "gru",
-      "status": "live",
       "cluster": "tfy-gcp-gru-gtw",
       "hostname": "gru.gateway.truefoundry.ai",
       "nat_ips": [
@@ -90,7 +84,6 @@
       "region": "sa-east-1",
       "continent": "sa",
       "airport_code": "gru",
-      "status": "provisioned",
       "cluster": "tfy-aws-gru-gtw",
       "nat_ips": [
         "56.126.81.140/32",
@@ -103,7 +96,6 @@
       "region": "northamerica-northeast2",
       "continent": "na",
       "airport_code": "yyz",
-      "status": "live",
       "cluster": "tfy-gcp-yyz-gtw",
       "hostname": "yyz.gateway.truefoundry.ai",
       "nat_ips": [
@@ -117,7 +109,6 @@
       "region": "ca-central-1",
       "continent": "na",
       "airport_code": "yyz",
-      "status": "provisioned",
       "cluster": "tfy-aws-yyz-gtw",
       "nat_ips": [
         "16.52.203.122/32",
@@ -130,7 +121,6 @@
       "region": "ca-west-1",
       "continent": "na",
       "airport_code": "yyc",
-      "status": "provisioned",
       "cluster": "tfy-aws-yyc-gtw",
       "nat_ips": [
         "40.177.86.240/32",
@@ -143,7 +133,6 @@
       "region": "westus",
       "continent": "na",
       "airport_code": "sfo",
-      "status": "live",
       "cluster": "tfy-az-sfo-gtw",
       "hostname": "sfo.gateway.truefoundry.ai",
       "nat_ips": [
@@ -157,7 +146,6 @@
       "region": "us-south1",
       "continent": "na",
       "airport_code": "dfw",
-      "status": "live",
       "cluster": "tfy-gcp-dfw-gtw",
       "hostname": "dfw.gateway.truefoundry.ai",
       "nat_ips": [
@@ -171,7 +159,6 @@
       "region": "eu-west-2",
       "continent": "eu",
       "airport_code": "lhr",
-      "status": "live",
       "cluster": "tfy-aws-lhr-gtw",
       "hostname": "lhr.gateway.truefoundry.ai",
       "nat_ips": [
@@ -185,7 +172,6 @@
       "region": "eu-west-3",
       "continent": "eu",
       "airport_code": "cdg",
-      "status": "provisioned",
       "cluster": "tfy-aws-cdg-gtw",
       "nat_ips": [
         "13.39.61.233/32",
@@ -198,7 +184,6 @@
       "region": "eu-west-1",
       "continent": "eu",
       "airport_code": "dub",
-      "status": "provisioned",
       "cluster": "tfy-aws-dub-gtw",
       "nat_ips": [
         "54.72.115.226/32",
@@ -211,7 +196,6 @@
       "region": "europe-southwest1",
       "continent": "eu",
       "airport_code": "mad",
-      "status": "live",
       "cluster": "tfy-gcp-mad-gtw",
       "hostname": "mad.gateway.truefoundry.ai",
       "nat_ips": [
@@ -225,7 +209,6 @@
       "region": "eu-south-2",
       "continent": "eu",
       "airport_code": "mad",
-      "status": "provisioned",
       "cluster": "tfy-aws-mad-gtw",
       "nat_ips": [
         "51.48.180.27/32",
@@ -238,7 +221,6 @@
       "region": "eu-south-1",
       "continent": "eu",
       "airport_code": "mxp",
-      "status": "provisioned",
       "cluster": "tfy-aws-mxp-gtw",
       "nat_ips": [
         "51.118.102.128/32",
@@ -251,7 +233,6 @@
       "region": "eu-central-1",
       "continent": "eu",
       "airport_code": "fra",
-      "status": "provisioned",
       "cluster": "tfy-aws-fra-gtw",
       "nat_ips": [
         "3.65.93.12/32",
@@ -264,7 +245,6 @@
       "region": "eu-central-2",
       "continent": "eu",
       "airport_code": "zrh",
-      "status": "provisioned",
       "cluster": "tfy-aws-zrh-gtw",
       "nat_ips": [
         "51.96.196.104/32",
@@ -277,7 +257,6 @@
       "region": "swedencentral",
       "continent": "eu",
       "airport_code": "gvx",
-      "status": "live",
       "cluster": "tfy-az-gvx-gtw",
       "hostname": "gvx.gateway.truefoundry.ai",
       "nat_ips": [
@@ -291,7 +270,6 @@
       "region": "eu-north-1",
       "continent": "eu",
       "airport_code": "arn",
-      "status": "provisioned",
       "cluster": "tfy-aws-arn-gtw",
       "nat_ips": [
         "13.48.213.79/32",
@@ -304,7 +282,6 @@
       "region": "af-south-1",
       "continent": "af",
       "airport_code": "cpt",
-      "status": "live",
       "cluster": "tfy-aws-cpt-gtw",
       "hostname": "cpt.gateway.truefoundry.ai",
       "nat_ips": [
@@ -318,7 +295,6 @@
       "region": "me-central1",
       "continent": "me",
       "airport_code": "dia",
-      "status": "live",
       "cluster": "tfy-gcp-dia-gtw",
       "hostname": "dia.gateway.truefoundry.ai",
       "nat_ips": [
@@ -332,7 +308,6 @@
       "region": "me-south-1",
       "continent": "me",
       "airport_code": "bah",
-      "status": "provisioned",
       "cluster": "tfy-aws-bah-gtw",
       "nat_ips": [
         "157.175.127.180/32",
@@ -345,7 +320,6 @@
       "region": "me-central-1",
       "continent": "me",
       "airport_code": "dxb",
-      "status": "provisioned",
       "cluster": "tfy-aws-dxb-gtw",
       "nat_ips": [
         "40.172.236.59/32",
@@ -358,7 +332,6 @@
       "region": "il-central-1",
       "continent": "me",
       "airport_code": "tlv",
-      "status": "provisioned",
       "cluster": "tfy-aws-tlv-gtw",
       "nat_ips": [
         "51.84.87.166/32",
@@ -371,7 +344,6 @@
       "region": "ap-south-1",
       "continent": "ap",
       "airport_code": "bom",
-      "status": "live",
       "cluster": "tfy-aws-bom-gtw",
       "hostname": "bom.gateway.truefoundry.ai",
       "nat_ips": [
@@ -385,7 +357,6 @@
       "region": "ap-south-2",
       "continent": "ap",
       "airport_code": "hyd",
-      "status": "provisioned",
       "cluster": "tfy-aws-hyd-gtw",
       "nat_ips": [
         "16.112.48.100/32",
@@ -398,7 +369,6 @@
       "region": "ap-east-1",
       "continent": "ap",
       "airport_code": "hkg",
-      "status": "provisioned",
       "cluster": "tfy-aws-hkg-gtw",
       "nat_ips": [
         "16.163.170.188/32",
@@ -411,7 +381,6 @@
       "region": "ap-east-2",
       "continent": "ap",
       "airport_code": "tpe",
-      "status": "provisioned",
       "cluster": "tfy-aws-tpe-gtw",
       "nat_ips": [
         "43.213.3.104/32",
@@ -424,7 +393,6 @@
       "region": "ap-southeast-7",
       "continent": "ap",
       "airport_code": "bkk",
-      "status": "provisioned",
       "cluster": "tfy-aws-bkk-gtw",
       "nat_ips": [
         "43.210.99.107/32",
@@ -437,7 +405,6 @@
       "region": "ap-southeast-3",
       "continent": "ap",
       "airport_code": "cgk",
-      "status": "provisioned",
       "cluster": "tfy-aws-cgk-gtw",
       "nat_ips": [
         "16.79.100.152/32",
@@ -450,7 +417,6 @@
       "region": "ap-southeast-1",
       "continent": "ap",
       "airport_code": "sin",
-      "status": "live",
       "cluster": "tfy-aws-sin-gtw",
       "hostname": "sin.gateway.truefoundry.ai",
       "nat_ips": [
@@ -464,7 +430,6 @@
       "region": "ap-southeast-4",
       "continent": "oc",
       "airport_code": "mel",
-      "status": "live",
       "cluster": "tfy-aws-mel-gtw",
       "hostname": "mel.gateway.truefoundry.ai",
       "nat_ips": [
@@ -478,7 +443,6 @@
       "region": "ap-southeast-6",
       "continent": "oc",
       "airport_code": "akl",
-      "status": "provisioned",
       "cluster": "tfy-aws-akl-gtw",
       "nat_ips": [
         "3.103.30.44/32",
@@ -491,7 +455,6 @@
       "region": "ap-southeast-5",
       "continent": "ap",
       "airport_code": "kul",
-      "status": "provisioned",
       "cluster": "tfy-aws-kul-gtw",
       "nat_ips": [
         "56.68.75.208/32",
@@ -504,7 +467,6 @@
       "region": "ap-southeast-2",
       "continent": "oc",
       "airport_code": "syd",
-      "status": "live",
       "cluster": "tfy-aws-syd-gtw",
       "hostname": "syd.gateway.truefoundry.ai",
       "nat_ips": [
@@ -518,7 +480,6 @@
       "region": "ap-northeast-1",
       "continent": "ap",
       "airport_code": "hnd",
-      "status": "provisioned",
       "cluster": "tfy-aws-hnd-gtw",
       "nat_ips": [
         "54.238.73.1/32",
@@ -531,7 +492,6 @@
       "region": "ap-northeast-2",
       "continent": "ap",
       "airport_code": "icn",
-      "status": "provisioned",
       "cluster": "tfy-aws-icn-gtw",
       "nat_ips": [
         "43.200.144.76/32",
@@ -544,7 +504,6 @@
       "region": "ap-northeast-3",
       "continent": "ap",
       "airport_code": "kix",
-      "status": "provisioned",
       "cluster": "tfy-aws-kix-gtw",
       "nat_ips": [
         "15.152.62.45/32",
@@ -557,7 +516,6 @@
       "region": "australiacentral",
       "continent": "oc",
       "airport_code": "cbr",
-      "status": "live",
       "cluster": "tfy-az-cbr-gtw",
       "hostname": "cbr.gateway.truefoundry.ai",
       "nat_ips": [

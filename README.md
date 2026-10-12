@@ -24,9 +24,9 @@ Pin to an exact version by replacing `latest/download` with `download/v2026.10.1
 # Every IP, ready to paste into a firewall rule
 curl -sL https://github.com/truefoundry/nat-ips/releases/latest/download/nat-ips.txt | grep -v '^#'
 
-# Only regions currently serving traffic
+# Just the EU-region PoPs
 curl -sL https://github.com/truefoundry/nat-ips/releases/latest/download/nat-ips.json \
-  | jq -r '.entries[] | select(.status == "live") | .nat_ips[]'
+  | jq -r '.entries[] | select(.continent == "eu") | .nat_ips[]'
 ```
 
 ## Coverage
@@ -39,17 +39,6 @@ curl -sL https://github.com/truefoundry/nat-ips/releases/latest/download/nat-ips
 
 If you call models through the AI Gateway, what's published today is what you need. Control-plane egress IPs are coming; watch releases to be notified.
 
-## live vs provisioned
-
-Every gateway entry carries a `status`:
-
-- **`live`** — the regional endpoint is serving traffic today. Has a `hostname` such as `mad.gateway.truefoundry.ai`.
-- **`provisioned`** — the NAT addresses are allocated and reserved for a region that isn't published yet. No `hostname`.
-
-**Allowlist both.** A provisioned IP sends you no traffic until that region activates, so permitting it early costs nothing — and it means a new region doesn't turn into an urgent firewall change on your side.
-
-Currently 15 live, 27 provisioned.
-
 ## Data format
 
 ```json
@@ -58,8 +47,6 @@ Currently 15 live, 27 provisioned.
   "generation_timestamp": "2026-10-12T12:52:47Z",
   "entry_count": 42,
   "ip_count": 84,
-  "live_count": 15,
-  "provisioned_count": 27,
   "entries": [
     {
       "control_plane": "eu",
@@ -67,7 +54,6 @@ Currently 15 live, 27 provisioned.
       "cloud": "gcp",
       "region": "europe-southwest1",
       "continent": "eu",
-      "status": "live",
       "airport_code": "mad",
       "gateway_host": "gateway.truefoundry.ai",
       "host": "mad.gateway.truefoundry.ai",
@@ -83,12 +69,11 @@ Currently 15 live, 27 provisioned.
 | `generation_timestamp` | UTC build time, ISO 8601 |
 | `control_plane` | `us` or `eu` — which control plane manages this cluster |
 | `type` | `control_plane` or `gateway` |
-| `status` | Gateway entries only — `live` or `provisioned` |
 | `cloud` / `region` | Where the egress NAT lives |
 | `continent` | `na`, `sa`, `eu`, `ap`, `me`, `af`, `oc` |
 | `airport_code` | Gateway entries only — IATA code for the PoP |
 | `gateway_host` | Gateway entries only — the global entry point |
-| `host` | The endpoint this entry serves. Absent on `provisioned` entries, which have none yet |
+| `host` | The endpoint this entry serves. Absent when the cluster's NAT addresses are allocated but its endpoint isn't published yet — **allowlist those IPs anyway**, so a region going live isn't an urgent firewall change on your side |
 | `nat_ips` | IPv4 CIDRs. Single addresses are written `/32` |
 
 > `airport_code` is **not unique**. Two clusters in the same metro on different clouds share a code — `sfo` is both AWS `us-west-1` and Azure `westus`. Key on `cluster`/`region`, not the airport code.
@@ -142,11 +127,11 @@ To add or change IPs:
 Run the same checks locally:
 
 ```bash
-uv run scripts/validate.py
-uv run scripts/build.py --version 0.0.0-local
+uv run .github/scripts/validate.py
+uv run .github/scripts/build.py --version 0.0.0-local
 ```
 
-Validation rejects malformed CIDRs, host bits set on a prefix, private or reserved addresses, overlapping ranges within an entry, `live` entries missing a `hostname`, a `hostname` whose leading label disagrees with its `airport_code`, gateway entries missing `airport_code` or `status`, and a `control_plane` that disagrees with its directory. Duplicate IPs across entries are reported as warnings.
+Validation rejects malformed CIDRs, host bits set on a prefix, private or reserved addresses, overlapping ranges within an entry, a `hostname` whose leading label disagrees with its `airport_code`, gateway entries missing an `airport_code`, and a `control_plane` that disagrees with its directory. Duplicate IPs across entries are reported as warnings.
 
 To preview a release without publishing: **Actions → Release → Run workflow → dry run**. The notes land in the job summary.
 
