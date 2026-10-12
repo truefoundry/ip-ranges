@@ -3,16 +3,18 @@ name: Validate
 on:
   pull_request:
     paths:
-      - "data/**"
-      - "schema/**"
-      - "scripts/**"
+      - "eu/**"
+      - "us/**"
+      - ".github/schema/**"
+      - ".github/scripts/**"
       - ".github/workflows/validate.yml"
   push:
     branches: [main]
     paths:
-      - "data/**"
-      - "schema/**"
-      - "scripts/**"
+      - "eu/**"
+      - "us/**"
+      - ".github/schema/**"
+      - ".github/scripts/**"
   workflow_dispatch:
 
 permissions:
@@ -29,15 +31,18 @@ jobs:
           enable-cache: true
 
       - name: Validate source files
-        run: uv run scripts/validate.py
+        run: uv run .github/scripts/validate.py
 
       - name: Build artifacts
-        run: uv run scripts/build.py --version 0.0.0-ci
+        run: uv run .github/scripts/build.py --version 0.0.0-ci
 
   diff:
     # Show reviewers exactly which IPs a PR adds or removes, so nobody has to read raw JSON.
+    # Informational only: `validate` is the gate, so a baseline that cannot be rebuilt
+    # (an old branch, a schema change) must never block the PR.
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
+    continue-on-error: true
     permissions:
       contents: read
       pull-requests: write
@@ -52,25 +57,39 @@ jobs:
 
       - name: Build this branch
         run: |
-          uv run scripts/build.py --version "pr-${{ github.event.pull_request.number }}"
-          cp dist/nat-ips.json "${RUNNER_TEMP}/new.json"
+          uv run .github/scripts/build.py --version "pr-${{ github.event.pull_request.number }}"
+          cp dist/eu.json dist/us.json "${RUNNER_TEMP}/"
 
       - name: Build the base branch
         run: |
-          git checkout "origin/${{ github.base_ref }}" -- data/
-          uv run scripts/build.py --version "${{ github.base_ref }}"
-          cp dist/nat-ips.json "${RUNNER_TEMP}/old.json"
-          git checkout HEAD -- data/
+          # main predates eu/ and us/. An empty baseline still produces a useful
+          # "everything added" comment instead of failing the checkout.
+          mkdir -p "${RUNNER_TEMP}/old"
+          base="origin/${{ github.base_ref }}"
+          if git cat-file -e "${base}:eu/ip-ranges.json" \
+            && git cat-file -e "${base}:us/ip-ranges.json"; then
+            git checkout "$base" -- eu us
+            uv run .github/scripts/build.py --version "${{ github.base_ref }}"
+            cp dist/eu.json dist/us.json "${RUNNER_TEMP}/old/"
+            git checkout HEAD -- eu us
+          else
+            echo "Base branch has no eu/ or us/ ip-ranges yet; diffing against an empty list."
+            printf '%s\n' '{"endpoints":[]}' > "${RUNNER_TEMP}/old/eu.json"
+            printf '%s\n' '{"endpoints":[]}' > "${RUNNER_TEMP}/old/us.json"
+          fi
 
       - name: Render diff
         run: |
-          uv run scripts/release_notes.py \
-            --new "${RUNNER_TEMP}/new.json" \
-            --old "${RUNNER_TEMP}/old.json" \
+          uv run .github/scripts/release_notes.py \
+            --version "pr-${{ github.event.pull_request.number }}" \
+            --eu "${RUNNER_TEMP}/eu.json" \
+            --us "${RUNNER_TEMP}/us.json" \
+            --old-eu "${RUNNER_TEMP}/old/eu.json" \
+            --old-us "${RUNNER_TEMP}/old/us.json" \
             --out "${RUNNER_TEMP}/diff.md"
 
           {
-            echo "<!-- nat-ips-diff -->"
+            echo "<!-- ip-ranges-diff -->"
             echo "## Proposed IP changes"
             echo
             tail -n +2 "${RUNNER_TEMP}/diff.md"

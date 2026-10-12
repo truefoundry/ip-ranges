@@ -1,6 +1,0 @@
-# TrueFoundry outbound NAT IPs
-# version: 0.0.0-unreleased
-# generated: 2026-10-12T12:23:55Z
-# https://github.com/truefoundry/nat-ips
-34.175.44.33/32
-34.175.219.109/32

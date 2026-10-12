@@ -4,10 +4,10 @@ on:
   push:
     branches: [main]
     paths:
-      # dist/** is deliberately absent — this workflow commits there and must not retrigger itself.
-      - "data/**"
-      - "schema/**"
-      - "scripts/**"
+      - "eu/**"
+      - "us/**"
+      - ".github/schema/**"
+      - ".github/scripts/**"
   workflow_dispatch:
     inputs:
       dry_run:
@@ -35,13 +35,13 @@ jobs:
           enable-cache: true
 
       - name: Validate source files
-        run: uv run scripts/validate.py
+        run: uv run .github/scripts/validate.py
 
       - name: Refuse to publish placeholder data
         run: |
-          if grep -rqi 'PLACEHOLDER' data/; then
-            echo "::error::data/ still contains PLACEHOLDER entries. Replace them with real IPs before releasing."
-            grep -rin 'PLACEHOLDER' data/
+          if grep -rqi 'PLACEHOLDER' eu/ us/; then
+            echo "::error::eu/ or us/ still contains PLACEHOLDER entries. Replace them with real IPs before releasing."
+            grep -rin 'PLACEHOLDER' eu/ us/
             exit 1
           fi
 
@@ -60,11 +60,15 @@ jobs:
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "Releasing v$VERSION"
 
-      - name: Capture the previously released artifact
+      - name: Fetch the previously released artifacts
         id: previous
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          PREV="$(git tag -l 'v*' --sort=-version:refname | head -n 1)"
-          if [ -n "$PREV" ] && git show "$PREV:dist/nat-ips.json" > "${RUNNER_TEMP}/old.json" 2>/dev/null; then
+          PREV="$(gh release list --limit 1 --json tagName --jq '.[0].tagName // empty')"
+          mkdir -p "${RUNNER_TEMP}/old"
+          if [ -n "$PREV" ] && gh release download "$PREV" --pattern eu.json --dir "${RUNNER_TEMP}/old" 2>/dev/null; then
+            gh release download "$PREV" --pattern us.json --dir "${RUNNER_TEMP}/old" 2>/dev/null || true
             echo "tag=$PREV" >> "$GITHUB_OUTPUT"
             echo "Comparing against $PREV"
           else
@@ -73,57 +77,44 @@ jobs:
           fi
 
       - name: Build artifacts
-        run: uv run scripts/build.py --version "${{ steps.version.outputs.version }}"
+        run: uv run .github/scripts/build.py --version "${{ steps.version.outputs.version }}"
 
       - name: Write release notes
+        id: notes
         run: |
-          ARGS=(--new dist/nat-ips.json --out "${RUNNER_TEMP}/notes.md")
-          if [ -n "${{ steps.previous.outputs.tag }}" ]; then
-            ARGS+=(--old "${RUNNER_TEMP}/old.json")
+          ARGS=(
+            --version "${{ steps.version.outputs.version }}"
+            --eu dist/eu.json
+            --us dist/us.json
+            --out "${RUNNER_TEMP}/notes.md"
+          )
+          if [ -f "${RUNNER_TEMP}/old/eu.json" ]; then
+            ARGS+=(--old-eu "${RUNNER_TEMP}/old/eu.json")
           fi
-          uv run scripts/release_notes.py "${ARGS[@]}"
-          cat "${RUNNER_TEMP}/notes.md"
-
-      - name: Update CHANGELOG
-        run: |
-          printf '%s\n\n' "$(cat "${RUNNER_TEMP}/notes.md")" > "${RUNNER_TEMP}/changelog.md"
-          if [ -f CHANGELOG.md ]; then
-            cat CHANGELOG.md >> "${RUNNER_TEMP}/changelog.md"
+          if [ -f "${RUNNER_TEMP}/old/us.json" ]; then
+            ARGS+=(--old-us "${RUNNER_TEMP}/old/us.json")
           fi
-          mv "${RUNNER_TEMP}/changelog.md" CHANGELOG.md
+          uv run .github/scripts/release_notes.py "${ARGS[@]}" >> "$GITHUB_OUTPUT"
+          cat "${RUNNER_TEMP}/notes.md" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Stop here on a dry run
         if: inputs.dry_run
-        run: |
-          echo "::notice::Dry run — skipping commit, tag and release."
-          git --no-pager diff --stat
+        run: echo "::notice::Dry run — notes are in the job summary. Nothing tagged or published."
 
-      - name: Commit, tag and publish
-        if: ${{ !inputs.dry_run }}
+      - name: Skip when the address list is unchanged
+        if: ${{ !inputs.dry_run && steps.notes.outputs.publish != 'true' }}
+        run: echo "::notice::No addresses were added or removed. No release published."
+
+      - name: Tag and publish
+        if: ${{ !inputs.dry_run && steps.notes.outputs.publish == 'true' }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VERSION: ${{ steps.version.outputs.version }}
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-          git add dist/ CHANGELOG.md
-          if git diff --staged --quiet; then
-            echo "::notice::Nothing changed — no release published."
-            exit 0
-          fi
-
-          git commit -m "chore(release): v${VERSION}"
-          git tag -a "v${VERSION}" -m "NAT IPs v${VERSION}"
-          git push origin HEAD:main --follow-tags
-
+          # gh creates the tag at this commit, so nothing is ever pushed to a protected branch.
           gh release create "v${VERSION}" \
-            --title "NAT IPs v${VERSION}" \
+            --target "${GITHUB_SHA}" \
+            --title "IP ranges v${VERSION}" \
             --notes-file "${RUNNER_TEMP}/notes.md" \
             --latest \
-            dist/nat-ips.json \
-            dist/nat-ips.txt \
-            dist/us.json \
-            dist/us.txt \
-            dist/eu.json \
-            dist/eu.txt
+            dist/*
