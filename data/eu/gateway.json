@@ -23,7 +23,7 @@
       "region": "us-east-2",
       "continent": "na",
       "airport_code": "cle",
-      "cluster": "tfy-aws-cle-gte",
+      "cluster": "tfy-aws-cle-gtw",
       "nat_ips": [
         "18.119.53.236/32",
         "3.130.37.65/32"
