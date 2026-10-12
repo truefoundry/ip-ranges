@@ -44,15 +44,22 @@ def load_entries() -> list[dict]:
             entry = {
                 "control_plane": control_plane,
                 "type": source["type"],
-                # host is always the endpoint a customer actually talks to.
-                "host": source.get("hostname") or doc.get("host_pattern") or doc.get("host"),
                 "cloud": source["cloud"],
                 "region": source["region"],
                 "continent": source["continent"],
             }
+
             if source["type"] == "gateway":
-                entry["gateway_host"] = doc["host"]
+                entry["status"] = source["status"]
                 entry["airport_code"] = source["airport_code"]
+                entry["gateway_host"] = doc["host"]
+                # A provisioned cluster has no published endpoint yet, so it gets no host.
+                # Inventing one would tell customers to resolve a name that does not exist.
+                if "hostname" in source:
+                    entry["host"] = source["hostname"]
+            else:
+                entry["host"] = doc.get("host_pattern") or doc.get("host")
+
             if "notes" in source:
                 entry["notes"] = source["notes"]
 
@@ -101,6 +108,8 @@ def main() -> int:
             "generation_timestamp": timestamp,
             "entry_count": len(subset),
             "ip_count": len(flat_ip_list(subset)),
+            "live_count": sum(1 for e in subset if e.get("status") != "provisioned"),
+            "provisioned_count": sum(1 for e in subset if e.get("status") == "provisioned"),
             "entries": subset,
         }
 

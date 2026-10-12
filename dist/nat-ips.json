@@ -1,17 +1,393 @@
 {
-  "version": "0.0.0-unreleased",
-  "generation_timestamp": "2026-10-12T12:23:55Z",
-  "entry_count": 4,
-  "ip_count": 2,
+  "version": "2026.10.12",
+  "generation_timestamp": "2026-10-12T12:52:47Z",
+  "entry_count": 42,
+  "ip_count": 84,
+  "live_count": 15,
+  "provisioned_count": 27,
   "entries": [
     {
       "control_plane": "eu",
-      "type": "control_plane",
-      "host": "*.eu.truefoundry.cloud",
+      "type": "gateway",
+      "cloud": "aws",
+      "region": "ap-southeast-6",
+      "continent": "oc",
+      "status": "provisioned",
+      "airport_code": "akl",
+      "gateway_host": "gateway.truefoundry.ai",
+      "nat_ips": [
+        "3.102.184.172/32",
+        "3.103.30.44/32"
+      ]
+    },
+    {
+      "control_plane": "eu",
+      "type": "gateway",
+      "cloud": "aws",
+      "region": "eu-north-1",
+      "continent": "eu",
+      "status": "provisioned",
+      "airport_code": "arn",
+      "gateway_host": "gateway.truefoundry.ai",
+      "nat_ips": [
+        "13.48.213.79/32",
+        "13.62.133.235/32"
+      ]
+    },
+    {
+      "control_plane": "eu",
+      "type": "gateway",
+      "cloud": "aws",
+      "region": "me-south-1",
+      "continent": "me",
+      "status": "provisioned",
+      "airport_code": "bah",
+      "gateway_host": "gateway.truefoundry.ai",
+      "nat_ips": [
+        "157.175.127.180/32",
+        "157.241.96.125/32"
+      ]
+    },
+    {
+      "control_plane": "eu",
+      "type": "gateway",
+      "cloud": "aws",
+      "region": "ap-southeast-7",
+      "continent": "ap",
+      "status": "provisioned",
+      "airport_code": "bkk",
+      "gateway_host": "gateway.truefoundry.ai",
+      "nat_ips": [
+        "43.209.246.149/32",
+        "43.210.99.107/32"
+      ]
+    },
+    {
+      "control_plane": "eu",
+      "type": "gateway",
+      "cloud": "aws",
+      "region": "ap-south-1",
+      "continent": "ap",
+      "status": "live",
+      "airport_code": "bom",
+      "gateway_host": "gateway.truefoundry.ai",
+      "host": "bom.gateway.truefoundry.ai",
+      "nat_ips": [
+        "13.126.176.139/32",
+        "15.207.191.126/32"
+      ]
+    },
+    {
+      "control_plane": "eu",
+      "type": "gateway",
+      "cloud": "azure",
+      "region": "australiacentral",
+      "continent": "oc",
+      "status": "live",
+      "airport_code": "cbr",
+      "gateway_host": "gateway.truefoundry.ai",
+      "host": "cbr.gateway.truefoundry.ai",
+      "nat_ips": [
+        "20.28.68.101/32",
+        "20.53.28.45/32"
+      ]
+    },
+    {
+      "control_plane": "eu",
+      "type": "gateway",
+      "cloud": "aws",
+      "region": "eu-west-3",
+      "continent": "eu",
+      "status": "provisioned",
+      "airport_code": "cdg",
+      "gateway_host": "gateway.truefoundry.ai",
+      "nat_ips": [
+        "13.39.61.233/32",
+        "15.237.200.183/32"
+      ]
+    },
+    {
+      "control_plane": "eu",
+      "type": "gateway",
+      "cloud": "aws",
+      "region": "ap-southeast-3",
+      "continent": "ap",
+      "status": "provisioned",
+      "airport_code": "cgk",
+      "gateway_host": "gateway.truefoundry.ai",
+      "nat_ips": [
+        "15.232.2.7/32",
+        "16.79.100.152/32"
+      ]
+    },
+    {
+      "control_plane": "eu",
+      "type": "gateway",
+      "cloud": "aws",
+      "region": "us-east-2",
+      "continent": "na",
+      "status": "provisioned",
+      "airport_code": "cle",
+      "gateway_host": "gateway.truefoundry.ai",
+      "nat_ips": [
+        "3.130.37.65/32",
+        "18.119.53.236/32"
+      ]
+    },
+    {
+      "control_plane": "eu",
+      "type": "gateway",
+      "cloud": "aws",
+      "region": "af-south-1",
+      "continent": "af",
+      "status": "live",
+      "airport_code": "cpt",
+      "gateway_host": "gateway.truefoundry.ai",
+      "host": "cpt.gateway.truefoundry.ai",
+      "nat_ips": [
+        "13.244.129.178/32",
+        "13.246.115.110/32"
+      ]
+    },
+    {
+      "control_plane": "eu",
+      "type": "gateway",
+      "cloud": "gcp",
+      "region": "us-south1",
+      "continent": "na",
+      "status": "live",
+      "airport_code": "dfw",
+      "gateway_host": "gateway.truefoundry.ai",
+      "host": "dfw.gateway.truefoundry.ai",
+      "nat_ips": [
+        "34.174.18.136/32",
+        "34.174.240.150/32"
+      ]
+    },
+    {
+      "control_plane": "eu",
+      "type": "gateway",
+      "cloud": "gcp",
+      "region": "me-central1",
+      "continent": "me",
+      "status": "live",
+      "airport_code": "dia",
+      "gateway_host": "gateway.truefoundry.ai",
+      "host": "dia.gateway.truefoundry.ai",
+      "nat_ips": [
+        "34.18.22.15/32",
+        "34.18.192.62/32"
+      ]
+    },
+    {
+      "control_plane": "eu",
+      "type": "gateway",
       "cloud": "aws",
       "region": "eu-west-1",
       "continent": "eu",
-      "notes": "PLACEHOLDER - not real data, replace before making this repo public",
+      "status": "provisioned",
+      "airport_code": "dub",
+      "gateway_host": "gateway.truefoundry.ai",
+      "nat_ips": [
+        "54.72.115.226/32",
+        "54.246.5.151/32"
+      ]
+    },
+    {
+      "control_plane": "eu",
+      "type": "gateway",
+      "cloud": "aws",
+      "region": "me-central-1",
+      "continent": "me",
+      "status": "provisioned",
+      "airport_code": "dxb",
+      "gateway_host": "gateway.truefoundry.ai",
+      "nat_ips": [
+        "3.29.12.147/32",
+        "40.172.236.59/32"
+      ]
+    },
+    {
+      "control_plane": "eu",
+      "type": "gateway",
+      "cloud": "aws",
+      "region": "eu-central-1",
+      "continent": "eu",
+      "status": "provisioned",
+      "airport_code": "fra",
+      "gateway_host": "gateway.truefoundry.ai",
+      "nat_ips": [
+        "3.65.93.12/32",
+        "63.181.139.3/32"
+      ]
+    },
+    {
+      "control_plane": "eu",
+      "type": "gateway",
+      "cloud": "aws",
+      "region": "sa-east-1",
+      "continent": "sa",
+      "status": "provisioned",
+      "airport_code": "gru",
+      "gateway_host": "gateway.truefoundry.ai",
+      "nat_ips": [
+        "56.126.18.155/32",
+        "56.126.81.140/32"
+      ]
+    },
+    {
+      "control_plane": "eu",
+      "type": "gateway",
+      "cloud": "gcp",
+      "region": "southamerica-east1",
+      "continent": "sa",
+      "status": "live",
+      "airport_code": "gru",
+      "gateway_host": "gateway.truefoundry.ai",
+      "host": "gru.gateway.truefoundry.ai",
+      "nat_ips": [
+        "34.39.220.106/32",
+        "34.39.220.236/32"
+      ]
+    },
+    {
+      "control_plane": "eu",
+      "type": "gateway",
+      "cloud": "azure",
+      "region": "swedencentral",
+      "continent": "eu",
+      "status": "live",
+      "airport_code": "gvx",
+      "gateway_host": "gateway.truefoundry.ai",
+      "host": "gvx.gateway.truefoundry.ai",
+      "nat_ips": [
+        "4.165.99.208/32",
+        "4.165.129.123/32"
+      ]
+    },
+    {
+      "control_plane": "eu",
+      "type": "gateway",
+      "cloud": "aws",
+      "region": "ap-east-1",
+      "continent": "ap",
+      "status": "provisioned",
+      "airport_code": "hkg",
+      "gateway_host": "gateway.truefoundry.ai",
+      "nat_ips": [
+        "16.163.170.188/32",
+        "18.166.19.152/32"
+      ]
+    },
+    {
+      "control_plane": "eu",
+      "type": "gateway",
+      "cloud": "aws",
+      "region": "ap-northeast-1",
+      "continent": "ap",
+      "status": "provisioned",
+      "airport_code": "hnd",
+      "gateway_host": "gateway.truefoundry.ai",
+      "nat_ips": [
+        "18.178.26.39/32",
+        "54.238.73.1/32"
+      ]
+    },
+    {
+      "control_plane": "eu",
+      "type": "gateway",
+      "cloud": "aws",
+      "region": "ap-south-2",
+      "continent": "ap",
+      "status": "provisioned",
+      "airport_code": "hyd",
+      "gateway_host": "gateway.truefoundry.ai",
+      "nat_ips": [
+        "16.112.48.100/32",
+        "40.192.126.53/32"
+      ]
+    },
+    {
+      "control_plane": "eu",
+      "type": "gateway",
+      "cloud": "aws",
+      "region": "ap-northeast-2",
+      "continent": "ap",
+      "status": "provisioned",
+      "airport_code": "icn",
+      "gateway_host": "gateway.truefoundry.ai",
+      "nat_ips": [
+        "43.200.33.159/32",
+        "43.200.144.76/32"
+      ]
+    },
+    {
+      "control_plane": "eu",
+      "type": "gateway",
+      "cloud": "aws",
+      "region": "ap-northeast-3",
+      "continent": "ap",
+      "status": "provisioned",
+      "airport_code": "kix",
+      "gateway_host": "gateway.truefoundry.ai",
+      "nat_ips": [
+        "15.152.62.45/32",
+        "15.168.90.90/32"
+      ]
+    },
+    {
+      "control_plane": "eu",
+      "type": "gateway",
+      "cloud": "aws",
+      "region": "ap-southeast-5",
+      "continent": "ap",
+      "status": "provisioned",
+      "airport_code": "kul",
+      "gateway_host": "gateway.truefoundry.ai",
+      "nat_ips": [
+        "56.68.6.121/32",
+        "56.68.75.208/32"
+      ]
+    },
+    {
+      "control_plane": "eu",
+      "type": "gateway",
+      "cloud": "aws",
+      "region": "eu-west-2",
+      "continent": "eu",
+      "status": "live",
+      "airport_code": "lhr",
+      "gateway_host": "gateway.truefoundry.ai",
+      "host": "lhr.gateway.truefoundry.ai",
+      "nat_ips": [
+        "13.42.115.230/32",
+        "18.130.148.118/32"
+      ]
+    },
+    {
+      "control_plane": "eu",
+      "type": "gateway",
+      "cloud": "aws",
+      "region": "eu-south-2",
+      "continent": "eu",
+      "status": "provisioned",
+      "airport_code": "mad",
+      "gateway_host": "gateway.truefoundry.ai",
+      "nat_ips": [
+        "15.216.64.85/32",
+        "51.48.180.27/32"
+      ]
+    },
+    {
+      "control_plane": "eu",
+      "type": "gateway",
+      "cloud": "gcp",
+      "region": "europe-southwest1",
+      "continent": "eu",
+      "status": "live",
+      "airport_code": "mad",
+      "gateway_host": "gateway.truefoundry.ai",
+      "host": "mad.gateway.truefoundry.ai",
       "nat_ips": [
         "34.175.44.33/32",
         "34.175.219.109/32"
@@ -20,44 +396,217 @@
     {
       "control_plane": "eu",
       "type": "gateway",
-      "host": "mad.eu.truefoundry.cloud",
-      "cloud": "gcp",
-      "region": "europe-southwest1",
-      "continent": "eu",
-      "gateway_host": "eu.truefoundry.cloud",
-      "airport_code": "mad",
-      "notes": "PLACEHOLDER - not real data, replace before making this repo public",
+      "cloud": "aws",
+      "region": "ap-southeast-4",
+      "continent": "oc",
+      "status": "live",
+      "airport_code": "mel",
+      "gateway_host": "gateway.truefoundry.ai",
+      "host": "mel.gateway.truefoundry.ai",
       "nat_ips": [
-        "34.175.44.33/32",
-        "34.175.219.109/32"
+        "16.51.12.109/32",
+        "16.51.101.207/32"
       ]
     },
     {
-      "control_plane": "us",
-      "type": "control_plane",
-      "host": "*.us.truefoundry.cloud",
+      "control_plane": "eu",
+      "type": "gateway",
+      "cloud": "aws",
+      "region": "mx-central-1",
+      "continent": "na",
+      "status": "provisioned",
+      "airport_code": "mex",
+      "gateway_host": "gateway.truefoundry.ai",
+      "nat_ips": [
+        "78.13.15.252/32",
+        "78.13.183.82/32"
+      ]
+    },
+    {
+      "control_plane": "eu",
+      "type": "gateway",
+      "cloud": "aws",
+      "region": "eu-south-1",
+      "continent": "eu",
+      "status": "provisioned",
+      "airport_code": "mxp",
+      "gateway_host": "gateway.truefoundry.ai",
+      "nat_ips": [
+        "18.102.33.104/32",
+        "51.118.102.128/32"
+      ]
+    },
+    {
+      "control_plane": "eu",
+      "type": "gateway",
       "cloud": "aws",
       "region": "us-east-1",
       "continent": "na",
-      "notes": "PLACEHOLDER - not real data, replace before making this repo public",
+      "status": "live",
+      "airport_code": "orf",
+      "gateway_host": "gateway.truefoundry.ai",
+      "host": "orf.gateway.truefoundry.ai",
       "nat_ips": [
-        "34.175.44.33/32",
-        "34.175.219.109/32"
+        "52.4.51.133/32",
+        "54.204.114.10/32"
       ]
     },
     {
-      "control_plane": "us",
+      "control_plane": "eu",
       "type": "gateway",
-      "host": "mad.us.truefoundry.cloud",
-      "cloud": "gcp",
-      "region": "europe-southwest1",
-      "continent": "eu",
-      "gateway_host": "us.truefoundry.cloud",
-      "airport_code": "mad",
-      "notes": "PLACEHOLDER - not real data, replace before making this repo public",
+      "cloud": "aws",
+      "region": "us-west-2",
+      "continent": "na",
+      "status": "provisioned",
+      "airport_code": "pdx",
+      "gateway_host": "gateway.truefoundry.ai",
       "nat_ips": [
-        "34.175.44.33/32",
-        "34.175.219.109/32"
+        "34.210.236.98/32",
+        "44.236.36.218/32"
+      ]
+    },
+    {
+      "control_plane": "eu",
+      "type": "gateway",
+      "cloud": "aws",
+      "region": "us-west-1",
+      "continent": "na",
+      "status": "provisioned",
+      "airport_code": "sfo",
+      "gateway_host": "gateway.truefoundry.ai",
+      "nat_ips": [
+        "13.52.112.39/32",
+        "54.193.213.45/32"
+      ]
+    },
+    {
+      "control_plane": "eu",
+      "type": "gateway",
+      "cloud": "azure",
+      "region": "westus",
+      "continent": "na",
+      "status": "live",
+      "airport_code": "sfo",
+      "gateway_host": "gateway.truefoundry.ai",
+      "host": "sfo.gateway.truefoundry.ai",
+      "nat_ips": [
+        "20.245.207.53/32",
+        "40.75.129.73/32"
+      ]
+    },
+    {
+      "control_plane": "eu",
+      "type": "gateway",
+      "cloud": "aws",
+      "region": "ap-southeast-1",
+      "continent": "ap",
+      "status": "live",
+      "airport_code": "sin",
+      "gateway_host": "gateway.truefoundry.ai",
+      "host": "sin.gateway.truefoundry.ai",
+      "nat_ips": [
+        "13.251.96.74/32",
+        "18.143.12.175/32"
+      ]
+    },
+    {
+      "control_plane": "eu",
+      "type": "gateway",
+      "cloud": "aws",
+      "region": "ap-southeast-2",
+      "continent": "oc",
+      "status": "live",
+      "airport_code": "syd",
+      "gateway_host": "gateway.truefoundry.ai",
+      "host": "syd.gateway.truefoundry.ai",
+      "nat_ips": [
+        "3.105.148.45/32",
+        "13.237.191.204/32"
+      ]
+    },
+    {
+      "control_plane": "eu",
+      "type": "gateway",
+      "cloud": "aws",
+      "region": "il-central-1",
+      "continent": "me",
+      "status": "provisioned",
+      "airport_code": "tlv",
+      "gateway_host": "gateway.truefoundry.ai",
+      "nat_ips": [
+        "51.16.181.62/32",
+        "51.84.87.166/32"
+      ]
+    },
+    {
+      "control_plane": "eu",
+      "type": "gateway",
+      "cloud": "aws",
+      "region": "ap-east-2",
+      "continent": "ap",
+      "status": "provisioned",
+      "airport_code": "tpe",
+      "gateway_host": "gateway.truefoundry.ai",
+      "nat_ips": [
+        "43.212.202.18/32",
+        "43.213.3.104/32"
+      ]
+    },
+    {
+      "control_plane": "eu",
+      "type": "gateway",
+      "cloud": "aws",
+      "region": "ca-west-1",
+      "continent": "na",
+      "status": "provisioned",
+      "airport_code": "yyc",
+      "gateway_host": "gateway.truefoundry.ai",
+      "nat_ips": [
+        "40.176.147.21/32",
+        "40.177.86.240/32"
+      ]
+    },
+    {
+      "control_plane": "eu",
+      "type": "gateway",
+      "cloud": "aws",
+      "region": "ca-central-1",
+      "continent": "na",
+      "status": "provisioned",
+      "airport_code": "yyz",
+      "gateway_host": "gateway.truefoundry.ai",
+      "nat_ips": [
+        "15.156.30.166/32",
+        "16.52.203.122/32"
+      ]
+    },
+    {
+      "control_plane": "eu",
+      "type": "gateway",
+      "cloud": "gcp",
+      "region": "northamerica-northeast2",
+      "continent": "na",
+      "status": "live",
+      "airport_code": "yyz",
+      "gateway_host": "gateway.truefoundry.ai",
+      "host": "yyz.gateway.truefoundry.ai",
+      "nat_ips": [
+        "34.130.196.232/32",
+        "34.130.234.128/32"
+      ]
+    },
+    {
+      "control_plane": "eu",
+      "type": "gateway",
+      "cloud": "aws",
+      "region": "eu-central-2",
+      "continent": "eu",
+      "status": "provisioned",
+      "airport_code": "zrh",
+      "gateway_host": "gateway.truefoundry.ai",
+      "nat_ips": [
+        "51.96.80.198/32",
+        "51.96.196.104/32"
       ]
     }
   ]

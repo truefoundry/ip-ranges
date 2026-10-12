@@ -39,6 +39,16 @@ def describe(entry: dict) -> str:
     return " · ".join(bits)
 
 
+def host_label(entry: dict) -> str:
+    """A provisioned cluster has no endpoint, so say that rather than print empty backticks."""
+    host = entry.get("host")
+    if host:
+        return f"`{host}`"
+    if entry.get("status") == "provisioned":
+        return "_provisioned, no endpoint yet_"
+    return "_no endpoint_"
+
+
 def ip_sort(cidr: str) -> ipaddress.IPv4Network:
     return ipaddress.IPv4Network(cidr)
 
@@ -51,11 +61,11 @@ def render_changed(title: str, cidrs: list[str], index: dict[str, list[dict]]) -
     buckets: dict[tuple[str, str], set[str]] = defaultdict(set)
     for cidr in cidrs:
         for entry in index[cidr]:
-            buckets[(describe(entry), entry.get("host", ""))].add(cidr)
+            buckets[(describe(entry), host_label(entry))].add(cidr)
 
     lines = [f"### {title} ({len(cidrs)})", ""]
     for (label, host), group in sorted(buckets.items()):
-        lines.append(f"**{label}** — `{host}`")
+        lines.append(f"**{label}** — {host}")
         lines.extend(f"- `{cidr}`" for cidr in sorted(group, key=ip_sort))
         lines.append("")
     return lines
@@ -65,7 +75,7 @@ def render_full(doc: dict) -> list[str]:
     """List every entry in order — used for the first release, where nothing is a 'change'."""
     lines = ["### Published IPs", ""]
     for entry in doc.get("entries", []):
-        lines.append(f"**{describe(entry)}** — `{entry.get('host', '')}`")
+        lines.append(f"**{describe(entry)}** — {host_label(entry)}")
         lines.extend(f"- `{cidr}`" for cidr in entry["nat_ips"])
         lines.append("")
     return lines
@@ -118,18 +128,27 @@ def main() -> int:
         lines += render_changed("Added", added, new_index)
         lines += render_changed("Removed", removed, old_index)
 
+    # Only link per-plane assets that this release actually built.
+    planes = sorted({e["control_plane"] for e in new_doc.get("entries", [])})
     lines += [
         "---",
         "",
         "### Full list",
         "",
         f"- Everything: {REPO}/releases/download/v{version}/nat-ips.json",
-        f"- US control plane: {REPO}/releases/download/v{version}/us.json",
-        f"- EU control plane: {REPO}/releases/download/v{version}/eu.json",
+    ]
+    lines += [
+        f"- {plane.upper()} control plane: {REPO}/releases/download/v{version}/{plane}.json"
+        for plane in planes
+    ]
+    totals = f"**{new_doc['entry_count']} entries, {new_doc['ip_count']} unique IPs**"
+    if new_doc.get("provisioned_count"):
+        totals += f" ({new_doc['live_count']} live, {new_doc['provisioned_count']} provisioned)"
+    lines += [
         "- Plain text for firewall scripts: swap `.json` for `.txt` in any URL above.",
         f"- Always-latest instead of pinned: {REPO}/releases/latest/download/nat-ips.json",
         "",
-        f"Totals in this release: **{new_doc['entry_count']} entries, {new_doc['ip_count']} unique IPs**.",
+        f"Totals in this release: {totals}.",
         "",
     ]
 

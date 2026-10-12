@@ -88,6 +88,12 @@ def validate_file(path: Path, validator: Draft202012Validator) -> list[dict]:
         if hostname and not HOSTNAME_RE.match(hostname):
             error(where, f"hostname {hostname!r} is not a valid lowercase FQDN")
 
+        # Catches a row pasted into the wrong cluster: the endpoint always leads with its
+        # own airport code, so a mismatch means the entry has been crossed with another.
+        airport = entry.get("airport_code")
+        if hostname and airport and not hostname.startswith(f"{airport}."):
+            error(where, f"hostname {hostname!r} does not start with airport code {airport!r}")
+
         nets = [n for n in (check_cidr(where, ip) for ip in entry["nat_ips"]) if n]
         for a_index, a in enumerate(nets):
             for b in nets[a_index + 1 :]:

@@ -1,10 +1,10 @@
 # TrueFoundry NAT IPs
 
-The outbound (egress) IP addresses TrueFoundry connects **from**. If you restrict inbound traffic to your model endpoints, webhooks, databases, or private APIs, allowlist the IPs for your control plane.
+The outbound (egress) IP addresses TrueFoundry connects **from**. If you restrict inbound traffic to your model endpoints, webhooks, databases, or private APIs, allowlist these.
 
 Published as machine-readable JSON with a [GitHub Release](https://github.com/truefoundry/nat-ips/releases) for every change, so you can subscribe and automate.
 
-> **IPs change.** New regions get added and cloud NAT gateways get renumbered. Subscribe to releases rather than copying the list once.
+> **IPs change.** Regions get added and cloud NAT gateways get renumbered. Subscribe to releases rather than copying the list once.
 
 ---
 
@@ -15,7 +15,6 @@ Always-latest URLs — these follow the newest release:
 | What | URL |
 | --- | --- |
 | Everything | `https://github.com/truefoundry/nat-ips/releases/latest/download/nat-ips.json` |
-| US control plane only | `https://github.com/truefoundry/nat-ips/releases/latest/download/us.json` |
 | EU control plane only | `https://github.com/truefoundry/nat-ips/releases/latest/download/eu.json` |
 | Plain text, one CIDR per line | swap `.json` → `.txt` in any URL above |
 
@@ -25,70 +24,53 @@ Pin to an exact version by replacing `latest/download` with `download/v2026.10.1
 # Every IP, ready to paste into a firewall rule
 curl -sL https://github.com/truefoundry/nat-ips/releases/latest/download/nat-ips.txt | grep -v '^#'
 
-# Just the EU gateway PoPs
-curl -sL https://github.com/truefoundry/nat-ips/releases/latest/download/eu.json \
-  | jq -r '.entries[] | select(.type == "gateway") | .nat_ips[]'
+# Only regions currently serving traffic
+curl -sL https://github.com/truefoundry/nat-ips/releases/latest/download/nat-ips.json \
+  | jq -r '.entries[] | select(.status == "live") | .nat_ips[]'
 ```
 
-## Which IPs do I need?
+## Coverage
 
-Pick by the TrueFoundry domain you were onboarded onto.
-
-| Your setup | Allowlist |
+| Plane | Status |
 | --- | --- |
-| Control plane at `*.us.truefoundry.cloud` | `us.json` |
-| Control plane at `*.eu.truefoundry.cloud` | `eu.json` |
-| Not sure, or you use both | `nat-ips.json` |
+| AI Gateway — `*.gateway.truefoundry.ai` | **Published**, 42 regions |
+| EU control plane — `*.eu.truefoundry.cloud` | Not yet published |
+| US control plane — `*.us.truefoundry.cloud` | Not yet published |
 
-Within a control plane there are two kinds of entry:
+If you call models through the AI Gateway, what's published today is what you need. Control-plane egress IPs are coming; watch releases to be notified.
 
-- **`control_plane`** — the TrueFoundry platform itself. Covers deployments, webhooks, and integrations calling out to your systems.
-- **`gateway`** — regional AI Gateway points of presence. Traffic to your self-hosted or private model endpoints comes from these. Each has a `hostname` (for example `mad.us.truefoundry.cloud`) and an `airport_code`.
+## live vs provisioned
 
-**If you only serve models through the AI Gateway, the `gateway` entries alone are enough.** Most customers need both.
+Every gateway entry carries a `status`:
 
-## Subscribe to changes
+- **`live`** — the regional endpoint is serving traffic today. Has a `hostname` such as `mad.gateway.truefoundry.ai`.
+- **`provisioned`** — the NAT addresses are allocated and reserved for a region that isn't published yet. No `hostname`.
 
-Pick whichever fits how you work:
+**Allowlist both.** A provisioned IP sends you no traffic until that region activates, so permitting it early costs nothing — and it means a new region doesn't turn into an urgent firewall change on your side.
 
-**1. GitHub notifications** — click **Watch → Custom → Releases** at the top of this repo. Everyone on your team who wants alerts should do this individually.
-
-**2. RSS / Atom** — point any feed reader, Slack RSS app, or internal bot at:
-
-```
-https://github.com/truefoundry/nat-ips/releases.atom
-```
-
-In Slack: `/feed subscribe https://github.com/truefoundry/nat-ips/releases.atom`
-
-**3. Poll from automation** — check the `version` field and act when it changes:
-
-```bash
-VERSION=$(curl -sL https://github.com/truefoundry/nat-ips/releases/latest/download/nat-ips.json | jq -r .version)
-```
-
-Every release note lists the exact IPs **added** and **removed** versus the previous release, so a diff is never required on your side.
-
-> Add newly published IPs promptly. Removing retired IPs is optional and can wait for your next maintenance window — stale entries are harmless.
+Currently 15 live, 27 provisioned.
 
 ## Data format
 
 ```json
 {
   "version": "2026.10.12",
-  "generation_timestamp": "2026-10-12T09:14:03Z",
-  "entry_count": 4,
-  "ip_count": 8,
+  "generation_timestamp": "2026-10-12T12:52:47Z",
+  "entry_count": 42,
+  "ip_count": 84,
+  "live_count": 15,
+  "provisioned_count": 27,
   "entries": [
     {
-      "control_plane": "us",
+      "control_plane": "eu",
       "type": "gateway",
-      "host": "mad.us.truefoundry.cloud",
-      "gateway_host": "us.truefoundry.cloud",
       "cloud": "gcp",
       "region": "europe-southwest1",
       "continent": "eu",
+      "status": "live",
       "airport_code": "mad",
+      "gateway_host": "gateway.truefoundry.ai",
+      "host": "mad.gateway.truefoundry.ai",
       "nat_ips": ["34.175.44.33/32", "34.175.219.109/32"]
     }
   ]
@@ -99,33 +81,57 @@ Every release note lists the exact IPs **added** and **removed** versus the prev
 | --- | --- |
 | `version` | CalVer release, matching the git tag `v<version>` |
 | `generation_timestamp` | UTC build time, ISO 8601 |
-| `control_plane` | `us` or `eu` |
+| `control_plane` | `us` or `eu` — which control plane manages this cluster |
 | `type` | `control_plane` or `gateway` |
-| `host` | The endpoint this entry serves. Wildcard for control planes, regional FQDN for gateways |
-| `gateway_host` | Gateway entries only — the global entry point that routes to this PoP |
+| `status` | Gateway entries only — `live` or `provisioned` |
 | `cloud` / `region` | Where the egress NAT lives |
+| `continent` | `na`, `sa`, `eu`, `ap`, `me`, `af`, `oc` |
 | `airport_code` | Gateway entries only — IATA code for the PoP |
+| `gateway_host` | Gateway entries only — the global entry point |
+| `host` | The endpoint this entry serves. Absent on `provisioned` entries, which have none yet |
 | `nat_ips` | IPv4 CIDRs. Single addresses are written `/32` |
+
+> `airport_code` is **not unique**. Two clusters in the same metro on different clouds share a code — `sfo` is both AWS `us-west-1` and Azure `westus`. Key on `cluster`/`region`, not the airport code.
 
 Entries are sorted deterministically and IPs are sorted numerically, so a `git diff` between versions is readable.
 
 JSON Schema for the source files: [`schema/nat-ips.schema.json`](schema/nat-ips.schema.json).
 
+## Subscribe to changes
+
+**1. GitHub notifications** — **Watch → Custom → Releases** at the top of this repo. Each person who wants alerts does this individually.
+
+**2. RSS / Atom** — point a feed reader, the Slack RSS app, or an internal bot at:
+
+```
+https://github.com/truefoundry/nat-ips/releases.atom
+```
+
+In Slack: `/feed subscribe https://github.com/truefoundry/nat-ips/releases.atom`
+
+**3. Poll from automation** — check `version` and act when it changes:
+
+```bash
+VERSION=$(curl -sL https://github.com/truefoundry/nat-ips/releases/latest/download/nat-ips.json | jq -r .version)
+```
+
+Every release note lists the exact IPs **added** and **removed** versus the previous release, so you never need to diff on your side.
+
+> Add newly published IPs promptly. Removing retired IPs is optional and can wait for your next maintenance window — stale entries are harmless.
+
 ---
 
 ## For TrueFoundry engineers
 
-Source of truth is `data/<plane>/<control-plane|gateway>.json`. Everything in `dist/` is generated — never edit it by hand.
+Source of truth is `data/<control-plane>/<plane>.json`. Everything in `dist/` is generated — never edit it by hand.
 
 ```
 data/
-├── us/
-│   ├── control-plane.json    # *.us.truefoundry.cloud
-│   └── gateway.json          # us.truefoundry.cloud + regional PoPs
 └── eu/
-    ├── control-plane.json    # *.eu.truefoundry.cloud
-    └── gateway.json          # eu.truefoundry.cloud + regional PoPs
+    └── gateway.json      # 42 clusters on *.gateway.truefoundry.ai
 ```
+
+Still to add: `data/eu/control-plane.json`, `data/us/control-plane.json`, `data/us/gateway.json`.
 
 To add or change IPs:
 
@@ -140,11 +146,22 @@ uv run scripts/validate.py
 uv run scripts/build.py --version 0.0.0-local
 ```
 
-Validation rejects malformed CIDRs, host bits set on a prefix, private or reserved addresses, overlapping ranges within an entry, gateway entries missing a `hostname` or `airport_code`, and a `control_plane` that disagrees with its directory. Duplicate IPs across entries are reported as warnings.
+Validation rejects malformed CIDRs, host bits set on a prefix, private or reserved addresses, overlapping ranges within an entry, `live` entries missing a `hostname`, a `hostname` whose leading label disagrees with its `airport_code`, gateway entries missing `airport_code` or `status`, and a `control_plane` that disagrees with its directory. Duplicate IPs across entries are reported as warnings.
 
 To preview a release without publishing: **Actions → Release → Run workflow → dry run**.
 
 > The release workflow pushes a commit to `main`. If you enable branch protection, allow `github-actions[bot]` to bypass it, or the release step will fail.
+
+### Provenance
+
+The gateway data was transcribed from the internal *LLMGateway Clusters* wiki page, where paired NAT addresses render as one unseparated string (`18.119.53.2363.130.37.65`). Those splits are ambiguous — several parse more than one way — so each was resolved against the provider's published ranges (AWS `ip-ranges.json`, GCP `cloud.json`, Azure service tags) and accepted only when both addresses fall inside the claimed region. Two rows do not split the way they look:
+
+- `tfy-aws-fra-gtw` → `3.65.93.12` + `63.181.139.3` (not `3.65.93.126` + `3.181.139.3`)
+- `tfy-aws-hnd-gtw` → `54.238.73.1` + `18.178.26.39` (not `54.238.73.11` + `8.178.26.39`)
+
+Two region codes on the wiki are also wrong and are corrected here: `tfy-aws-mad-gtw` is `eu-south-2` (wiki says `ap-south-2`) and `tfy-aws-zrh-gtw` is `eu-central-2` (wiki says `eu-central-1`).
+
+**Re-verify after any bulk edit** rather than trusting a copy-paste from the wiki.
 
 ## Reporting a problem
 

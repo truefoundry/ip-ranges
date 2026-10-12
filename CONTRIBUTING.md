@@ -22,7 +22,7 @@ Anything security-sensitive goes to security@truefoundry.com, not a public issue
 
 ### Adding a regional gateway PoP
 
-Gateway entries need both an `airport_code` (lowercase IATA) and a `hostname`:
+Gateway entries need an `airport_code` (lowercase IATA) and a `status`. A `live` entry also needs a `hostname`, whose first label must match the airport code:
 
 ```json
 {
@@ -31,10 +31,18 @@ Gateway entries need both an `airport_code` (lowercase IATA) and a `hostname`:
   "region": "asia-south1",
   "continent": "ap",
   "airport_code": "bom",
-  "hostname": "bom.us.truefoundry.cloud",
+  "status": "live",
+  "cluster": "tfy-gcp-bom-gtw",
+  "hostname": "bom.gateway.truefoundry.ai",
   "nat_ips": ["34.100.0.1/32"]
 }
 ```
+
+Use `"status": "provisioned"` and omit `hostname` while the NAT addresses are allocated but the endpoint isn't published. Flip to `live` and add the hostname when it goes into service — that flip is itself a release, which is what tells customers the region is active.
+
+### Transcribing from the wiki
+
+The *LLMGateway Clusters* page renders paired NAT addresses as one unseparated string (`18.119.53.2363.130.37.65`). Several of those split more than one way and **all candidates parse as valid IPv4**, so do not eyeball them. Resolve each against the provider's published ranges — AWS `ip-ranges.json`, GCP `cloud.json`, Azure service tags — and accept a split only when both addresses fall inside the region the row claims. Two entries currently in `data/` do not split the way they look; see the Provenance section in the README.
 
 ### Timing
 
