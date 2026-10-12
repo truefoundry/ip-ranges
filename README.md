@@ -43,7 +43,7 @@ Find the hostname you connect to. `nat_ips` is every address that hostname can c
 }
 ```
 
-`type` is `control_plane` or `gateway`. Airport endpoints include `airport_code`. Continent hostnames combine the regional gateways that can serve them, including the documented fallback, and `nat_ips` is that combined list:
+`type` is `control_plane` or `gateway`. Airport endpoints include `airport_code`. Continent hostnames combine the regional gateways that can serve them, including the documented fallback, and `nat_ips` is that combined list. Which gateway you connect to is in the [globally distributed SaaS gateway](https://www.truefoundry.com/docs/ai-gateway/globally-distributed-saas) docs:
 
 | Hostname | Addresses |
 | --- | --- |
@@ -68,15 +68,6 @@ To be notified, choose **Watch → Custom → Releases** on this repository, or 
 
 ```
 https://github.com/truefoundry/nat-ips/releases.atom
-```
-
-## Updating the list
-
-Edit `eu/ip-ranges.json` or `us/ip-ranges.json` and open a pull request. Merging to `main` publishes a release when an address is added or removed.
-
-```bash
-uv run .github/scripts/validate.py
-uv run .github/scripts/build.py --version 0.0.0-local
 ```
 
 ## Reporting a problem
