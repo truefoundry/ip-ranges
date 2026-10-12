@@ -11,6 +11,7 @@ Run with: uv run .github/scripts/build.py --version 2026.10.12
 from __future__ import annotations
 
 import argparse
+import hashlib
 import ipaddress
 import json
 from datetime import datetime, timezone
@@ -33,7 +34,14 @@ def load_plane(plane: str) -> dict:
         raise SystemExit(f"missing {path} — refusing to build")
     doc = json.loads(path.read_text())
     # Release assets are the public document. $schema is only for editors in the repo.
-    return {"endpoints": doc["endpoints"]}
+    return {"sync_token": sync_token(doc["endpoints"]), "endpoints": doc["endpoints"]}
+
+
+def sync_token(endpoints: list[dict]) -> str:
+    """Deterministic hash of the endpoint list. Changes only when an address or hostname changes,
+    so automation can compare one field instead of diffing the whole file."""
+    canonical = json.dumps(endpoints, sort_keys=True, separators=(",", ":"))
+    return hashlib.sha256(canonical.encode()).hexdigest()[:16]
 
 
 def write_json(path: Path, payload: dict) -> None:
@@ -41,11 +49,12 @@ def write_json(path: Path, payload: dict) -> None:
     print(f"wrote {path.relative_to(ROOT)}")
 
 
-def write_text(path: Path, plane: str, version: str, timestamp: str, ips: list[str]) -> None:
+def write_text(path: Path, plane: str, version: str, timestamp: str, token: str, ips: list[str]) -> None:
     header = [
         f"# TrueFoundry {plane.upper()} outbound NAT IPs",
         f"# version: {version}",
         f"# generated: {timestamp}",
+        f"# sync_token: {token}",
         f"# {REPO}",
     ]
     path.write_text("\n".join(header + ips) + "\n")
@@ -68,6 +77,7 @@ def main() -> int:
             plane,
             args.version,
             timestamp,
+            doc["sync_token"],
             flat_ips(doc["endpoints"]),
         )
 
