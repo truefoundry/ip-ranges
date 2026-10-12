@@ -8,6 +8,8 @@ on:
       - "us/**"
       - ".github/schema/**"
       - ".github/scripts/**"
+      - ".github/pages/**"
+      - ".github/workflows/release.yml"
   workflow_dispatch:
     inputs:
       dry_run:
@@ -127,22 +129,7 @@ jobs:
         run: |
           mkdir -p site
           cp dist/eu.json dist/us.json dist/eu.txt dist/us.txt site/
-          cat > site/index.html << 'EOF'
-          <!DOCTYPE html>
-          <html lang="en">
-          <head>
-            <meta charset="utf-8">
-            <title>TrueFoundry IP ranges</title>
-          </head>
-          <body>
-            <h1>TrueFoundry IP ranges</h1>
-            <ul>
-              <li><a href="eu.json">EU JSON</a> · <a href="eu.txt">EU text</a></li>
-              <li><a href="us.json">US JSON</a> · <a href="us.txt">US text</a></li>
-            </ul>
-          </body>
-          </html>
-          EOF
+          cp .github/pages/index.html site/index.html
 
       - name: Upload the GitHub Pages artifact
         if: ${{ !inputs.dry_run }}
