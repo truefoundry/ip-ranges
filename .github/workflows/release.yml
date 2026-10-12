@@ -1,0 +1,129 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+    paths:
+      # dist/** is deliberately absent — this workflow commits there and must not retrigger itself.
+      - "data/**"
+      - "schema/**"
+      - "scripts/**"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Build and print the notes without tagging or publishing"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Validate source files
+        run: uv run scripts/validate.py
+
+      - name: Refuse to publish placeholder data
+        run: |
+          if grep -rqi 'PLACEHOLDER' data/; then
+            echo "::error::data/ still contains PLACEHOLDER entries. Replace them with real IPs before releasing."
+            grep -rin 'PLACEHOLDER' data/
+            exit 1
+          fi
+
+      - name: Pick a CalVer version
+        id: version
+        run: |
+          git fetch --tags --force
+          BASE="$(date -u +%Y.%m.%d)"
+          # Several releases in one day get -2, -3, ... so tags stay unique and ordered.
+          COUNT="$(git tag -l "v${BASE}" "v${BASE}-*" | wc -l | tr -d ' ')"
+          if [ "$COUNT" -eq 0 ]; then
+            VERSION="$BASE"
+          else
+            VERSION="${BASE}-$((COUNT + 1))"
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Releasing v$VERSION"
+
+      - name: Capture the previously released artifact
+        id: previous
+        run: |
+          PREV="$(git tag -l 'v*' --sort=-version:refname | head -n 1)"
+          if [ -n "$PREV" ] && git show "$PREV:dist/nat-ips.json" > "${RUNNER_TEMP}/old.json" 2>/dev/null; then
+            echo "tag=$PREV" >> "$GITHUB_OUTPUT"
+            echo "Comparing against $PREV"
+          else
+            echo "tag=" >> "$GITHUB_OUTPUT"
+            echo "No previous release to compare against"
+          fi
+
+      - name: Build artifacts
+        run: uv run scripts/build.py --version "${{ steps.version.outputs.version }}"
+
+      - name: Write release notes
+        run: |
+          ARGS=(--new dist/nat-ips.json --out "${RUNNER_TEMP}/notes.md")
+          if [ -n "${{ steps.previous.outputs.tag }}" ]; then
+            ARGS+=(--old "${RUNNER_TEMP}/old.json")
+          fi
+          uv run scripts/release_notes.py "${ARGS[@]}"
+          cat "${RUNNER_TEMP}/notes.md"
+
+      - name: Update CHANGELOG
+        run: |
+          printf '%s\n\n' "$(cat "${RUNNER_TEMP}/notes.md")" > "${RUNNER_TEMP}/changelog.md"
+          if [ -f CHANGELOG.md ]; then
+            cat CHANGELOG.md >> "${RUNNER_TEMP}/changelog.md"
+          fi
+          mv "${RUNNER_TEMP}/changelog.md" CHANGELOG.md
+
+      - name: Stop here on a dry run
+        if: inputs.dry_run
+        run: |
+          echo "::notice::Dry run — skipping commit, tag and release."
+          git --no-pager diff --stat
+
+      - name: Commit, tag and publish
+        if: ${{ !inputs.dry_run }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add dist/ CHANGELOG.md
+          if git diff --staged --quiet; then
+            echo "::notice::Nothing changed — no release published."
+            exit 0
+          fi
+
+          git commit -m "chore(release): v${VERSION}"
+          git tag -a "v${VERSION}" -m "NAT IPs v${VERSION}"
+          git push origin HEAD:main --follow-tags
+
+          gh release create "v${VERSION}" \
+            --title "NAT IPs v${VERSION}" \
+            --notes-file "${RUNNER_TEMP}/notes.md" \
+            --latest \
+            dist/nat-ips.json \
+            dist/nat-ips.txt \
+            dist/us.json \
+            dist/us.txt \
+            dist/eu.json \
+            dist/eu.txt

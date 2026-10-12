@@ -1,0 +1,36 @@
+{
+  "version": "0.0.0-unreleased",
+  "generation_timestamp": "2026-10-12T12:23:55Z",
+  "entry_count": 2,
+  "ip_count": 2,
+  "entries": [
+    {
+      "control_plane": "eu",
+      "type": "control_plane",
+      "host": "*.eu.truefoundry.cloud",
+      "cloud": "aws",
+      "region": "eu-west-1",
+      "continent": "eu",
+      "notes": "PLACEHOLDER - not real data, replace before making this repo public",
+      "nat_ips": [
+        "34.175.44.33/32",
+        "34.175.219.109/32"
+      ]
+    },
+    {
+      "control_plane": "eu",
+      "type": "gateway",
+      "host": "mad.eu.truefoundry.cloud",
+      "cloud": "gcp",
+      "region": "europe-southwest1",
+      "continent": "eu",
+      "gateway_host": "eu.truefoundry.cloud",
+      "airport_code": "mad",
+      "notes": "PLACEHOLDER - not real data, replace before making this repo public",
+      "nat_ips": [
+        "34.175.44.33/32",
+        "34.175.219.109/32"
+      ]
+    }
+  ]
+}

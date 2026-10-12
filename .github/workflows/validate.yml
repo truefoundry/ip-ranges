@@ -1,0 +1,85 @@
+name: Validate
+
+on:
+  pull_request:
+    paths:
+      - "data/**"
+      - "schema/**"
+      - "scripts/**"
+      - ".github/workflows/validate.yml"
+  push:
+    branches: [main]
+    paths:
+      - "data/**"
+      - "schema/**"
+      - "scripts/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Validate source files
+        run: uv run scripts/validate.py
+
+      - name: Build artifacts
+        run: uv run scripts/build.py --version 0.0.0-ci
+
+  diff:
+    # Show reviewers exactly which IPs a PR adds or removes, so nobody has to read raw JSON.
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Build this branch
+        run: |
+          uv run scripts/build.py --version "pr-${{ github.event.pull_request.number }}"
+          cp dist/nat-ips.json "${RUNNER_TEMP}/new.json"
+
+      - name: Build the base branch
+        run: |
+          git checkout "origin/${{ github.base_ref }}" -- data/
+          uv run scripts/build.py --version "${{ github.base_ref }}"
+          cp dist/nat-ips.json "${RUNNER_TEMP}/old.json"
+          git checkout HEAD -- data/
+
+      - name: Render diff
+        run: |
+          uv run scripts/release_notes.py \
+            --new "${RUNNER_TEMP}/new.json" \
+            --old "${RUNNER_TEMP}/old.json" \
+            --out "${RUNNER_TEMP}/diff.md"
+
+          {
+            echo "<!-- nat-ips-diff -->"
+            echo "## Proposed IP changes"
+            echo
+            tail -n +2 "${RUNNER_TEMP}/diff.md"
+          } > "${RUNNER_TEMP}/comment.md"
+
+      - name: Comment on the PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr comment "${{ github.event.pull_request.number }}" \
+            --body-file "${RUNNER_TEMP}/comment.md" \
+            --edit-last --create-if-none

@@ -1,0 +1,21 @@
+{
+  "$schema": "../../schema/nat-ips.schema.json",
+  "plane": "gateway",
+  "control_plane": "eu",
+  "host": "eu.truefoundry.cloud",
+  "entries": [
+    {
+      "type": "gateway",
+      "cloud": "gcp",
+      "region": "europe-southwest1",
+      "continent": "eu",
+      "airport_code": "mad",
+      "hostname": "mad.eu.truefoundry.cloud",
+      "nat_ips": [
+        "34.175.219.109/32",
+        "34.175.44.33/32"
+      ],
+      "notes": "PLACEHOLDER - not real data, replace before making this repo public"
+    }
+  ]
+}
