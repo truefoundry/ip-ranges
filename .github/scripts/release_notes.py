@@ -18,7 +18,8 @@ import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-REPO = "https://github.com/truefoundry/nat-ips"
+REPO = "https://github.com/truefoundry/ip-ranges"
+PAGES = "https://truefoundry.github.io/ip-ranges"
 PLANES = ("eu", "us")
 ACTIVATION_DAYS = 15
 
@@ -164,7 +165,7 @@ def main() -> int:
         )
     lines += [
         "- Plain text, one CIDR per line: swap `.json` for `.txt`.",
-        f"- Always-latest: {REPO}/releases/latest/download/eu.json",
+        f"- Always-latest: {PAGES}/eu.json",
         "",
     ]
 
