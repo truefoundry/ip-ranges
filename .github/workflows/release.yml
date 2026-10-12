@@ -4,7 +4,6 @@ on:
   push:
     branches: [main]
     paths:
-      # dist/** is deliberately absent — this workflow commits there and must not retrigger itself.
       - "data/**"
       - "schema/**"
       - "scripts/**"
@@ -60,11 +59,15 @@ jobs:
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "Releasing v$VERSION"
 
-      - name: Capture the previously released artifact
+      - name: Fetch the previously released artifact
         id: previous
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          PREV="$(git tag -l 'v*' --sort=-version:refname | head -n 1)"
-          if [ -n "$PREV" ] && git show "$PREV:dist/nat-ips.json" > "${RUNNER_TEMP}/old.json" 2>/dev/null; then
+          # dist/ is not tracked in git, so the diff baseline comes from the last release.
+          PREV="$(gh release list --limit 1 --json tagName --jq '.[0].tagName // empty')"
+          if [ -n "$PREV" ] && gh release download "$PREV" \
+               --pattern nat-ips.json --output "${RUNNER_TEMP}/old.json" 2>/dev/null; then
             echo "tag=$PREV" >> "$GITHUB_OUTPUT"
             echo "Comparing against $PREV"
           else
@@ -82,48 +85,22 @@ jobs:
             ARGS+=(--old "${RUNNER_TEMP}/old.json")
           fi
           uv run scripts/release_notes.py "${ARGS[@]}"
-          cat "${RUNNER_TEMP}/notes.md"
-
-      - name: Update CHANGELOG
-        run: |
-          printf '%s\n\n' "$(cat "${RUNNER_TEMP}/notes.md")" > "${RUNNER_TEMP}/changelog.md"
-          if [ -f CHANGELOG.md ]; then
-            cat CHANGELOG.md >> "${RUNNER_TEMP}/changelog.md"
-          fi
-          mv "${RUNNER_TEMP}/changelog.md" CHANGELOG.md
+          cat "${RUNNER_TEMP}/notes.md" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Stop here on a dry run
         if: inputs.dry_run
-        run: |
-          echo "::notice::Dry run — skipping commit, tag and release."
-          git --no-pager diff --stat
+        run: echo "::notice::Dry run — notes are in the job summary. Nothing tagged or published."
 
-      - name: Commit, tag and publish
+      - name: Tag and publish
         if: ${{ !inputs.dry_run }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VERSION: ${{ steps.version.outputs.version }}
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-          git add dist/ CHANGELOG.md
-          if git diff --staged --quiet; then
-            echo "::notice::Nothing changed — no release published."
-            exit 0
-          fi
-
-          git commit -m "chore(release): v${VERSION}"
-          git tag -a "v${VERSION}" -m "NAT IPs v${VERSION}"
-          git push origin HEAD:main --follow-tags
-
+          # gh creates the tag at this commit, so nothing is ever pushed to a protected branch.
           gh release create "v${VERSION}" \
+            --target "${GITHUB_SHA}" \
             --title "NAT IPs v${VERSION}" \
             --notes-file "${RUNNER_TEMP}/notes.md" \
             --latest \
-            dist/nat-ips.json \
-            dist/nat-ips.txt \
-            dist/us.json \
-            dist/us.txt \
-            dist/eu.json \
-            dist/eu.txt
+            dist/*

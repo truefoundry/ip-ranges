@@ -123,7 +123,7 @@ Every release note lists the exact IPs **added** and **removed** versus the prev
 
 ## For TrueFoundry engineers
 
-Source of truth is `data/<control-plane>/<plane>.json`. Everything in `dist/` is generated — never edit it by hand.
+Source of truth is `data/<control-plane>/<plane>.json`. `dist/` is a build artifact — it is **not tracked in git**, it is built in CI and attached to each release. Build it locally whenever you want to inspect it.
 
 ```
 data/
@@ -137,7 +137,7 @@ To add or change IPs:
 
 1. Edit the relevant file under `data/`.
 2. Open a PR. CI validates the schema and comments the exact IP diff for review.
-3. Merge to `main`. The release workflow builds `dist/`, tags `v<CalVer>`, and publishes a release with notes listing added and removed IPs.
+3. Merge to `main`. The release workflow builds `dist/`, tags `v<CalVer>` at that commit, and publishes a release with notes listing added and removed IPs.
 
 Run the same checks locally:
 
@@ -148,9 +148,9 @@ uv run scripts/build.py --version 0.0.0-local
 
 Validation rejects malformed CIDRs, host bits set on a prefix, private or reserved addresses, overlapping ranges within an entry, `live` entries missing a `hostname`, a `hostname` whose leading label disagrees with its `airport_code`, gateway entries missing `airport_code` or `status`, and a `control_plane` that disagrees with its directory. Duplicate IPs across entries are reported as warnings.
 
-To preview a release without publishing: **Actions → Release → Run workflow → dry run**.
+To preview a release without publishing: **Actions → Release → Run workflow → dry run**. The notes land in the job summary.
 
-> The release workflow pushes a commit to `main`. If you enable branch protection, allow `github-actions[bot]` to bypass it, or the release step will fail.
+> The release workflow never pushes to `main` — it tags the merge commit and uploads artifacts, so the branch ruleset requiring pull requests doesn't block it. Each release's diff baseline is the `nat-ips.json` asset from the previous release, so **don't delete old releases**.
 
 ### Provenance
 
