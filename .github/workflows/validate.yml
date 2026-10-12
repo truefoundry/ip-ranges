@@ -3,7 +3,7 @@ name: Validate
 on:
   pull_request:
     paths:
-      - "eu/**"
+      - "global/**"
       - "us/**"
       - ".github/schema/**"
       - ".github/scripts/**"
@@ -11,7 +11,7 @@ on:
   push:
     branches: [main]
     paths:
-      - "eu/**"
+      - "global/**"
       - "us/**"
       - ".github/schema/**"
       - ".github/scripts/**"
@@ -58,23 +58,32 @@ jobs:
       - name: Build this branch
         run: |
           uv run .github/scripts/build.py --version "pr-${{ github.event.pull_request.number }}"
-          cp dist/eu.json dist/us.json "${RUNNER_TEMP}/"
+          cp dist/global.json dist/us.json "${RUNNER_TEMP}/"
 
       - name: Build the base branch
         run: |
-          # main predates eu/ and us/. An empty baseline still produces a useful
-          # "everything added" comment instead of failing the checkout.
+          # Older bases used eu/ instead of global/. An empty baseline still produces a
+          # useful "everything added" comment instead of failing the checkout.
           mkdir -p "${RUNNER_TEMP}/old"
           base="origin/${{ github.base_ref }}"
-          if git cat-file -e "${base}:eu/ip-ranges.json" \
+          if git cat-file -e "${base}:global/ip-ranges.json" \
+            && git cat-file -e "${base}:us/ip-ranges.json"; then
+            git checkout "$base" -- global us
+            uv run .github/scripts/build.py --version "${{ github.base_ref }}"
+            cp dist/global.json dist/us.json "${RUNNER_TEMP}/old/"
+            git checkout HEAD -- global us
+          elif git cat-file -e "${base}:eu/ip-ranges.json" \
             && git cat-file -e "${base}:us/ip-ranges.json"; then
             git checkout "$base" -- eu us
+            mkdir -p global
+            cp eu/ip-ranges.json global/ip-ranges.json
             uv run .github/scripts/build.py --version "${{ github.base_ref }}"
-            cp dist/eu.json dist/us.json "${RUNNER_TEMP}/old/"
-            git checkout HEAD -- eu us
+            cp dist/global.json dist/us.json "${RUNNER_TEMP}/old/"
+            git checkout HEAD -- global us
+            rm -rf eu
           else
-            echo "Base branch has no eu/ or us/ ip-ranges yet; diffing against an empty list."
-            printf '%s\n' '{"endpoints":[]}' > "${RUNNER_TEMP}/old/eu.json"
+            echo "Base branch has no global/ or us/ ip-ranges yet; diffing against an empty list."
+            printf '%s\n' '{"endpoints":[]}' > "${RUNNER_TEMP}/old/global.json"
             printf '%s\n' '{"endpoints":[]}' > "${RUNNER_TEMP}/old/us.json"
           fi
 
@@ -82,9 +91,9 @@ jobs:
         run: |
           uv run .github/scripts/release_notes.py \
             --version "pr-${{ github.event.pull_request.number }}" \
-            --eu "${RUNNER_TEMP}/eu.json" \
+            --global "${RUNNER_TEMP}/global.json" \
             --us "${RUNNER_TEMP}/us.json" \
-            --old-eu "${RUNNER_TEMP}/old/eu.json" \
+            --old-global "${RUNNER_TEMP}/old/global.json" \
             --old-us "${RUNNER_TEMP}/old/us.json" \
             --out "${RUNNER_TEMP}/diff.md"
 

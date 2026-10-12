@@ -4,10 +4,12 @@ on:
   push:
     branches: [main]
     paths:
-      - "eu/**"
+      - "global/**"
       - "us/**"
       - ".github/schema/**"
       - ".github/scripts/**"
+      - ".github/pages/**"
+      - ".github/workflows/release.yml"
   workflow_dispatch:
     inputs:
       dry_run:
@@ -42,9 +44,9 @@ jobs:
 
       - name: Refuse to publish placeholder data
         run: |
-          if grep -rqi 'PLACEHOLDER' eu/ us/; then
-            echo "::error::eu/ or us/ still contains PLACEHOLDER entries. Replace them with real IPs before releasing."
-            grep -rin 'PLACEHOLDER' eu/ us/
+          if grep -rqi 'PLACEHOLDER' global/ us/; then
+            echo "::error::global/ or us/ still contains PLACEHOLDER entries. Replace them with real IPs before releasing."
+            grep -rin 'PLACEHOLDER' global/ us/
             exit 1
           fi
 
@@ -70,13 +72,19 @@ jobs:
         run: |
           PREV="$(gh release list --limit 1 --json tagName --jq '.[0].tagName // empty')"
           mkdir -p "${RUNNER_TEMP}/old"
-          if [ -n "$PREV" ] && gh release download "$PREV" --pattern eu.json --dir "${RUNNER_TEMP}/old" 2>/dev/null; then
-            gh release download "$PREV" --pattern us.json --dir "${RUNNER_TEMP}/old" 2>/dev/null || true
+          if [ -n "$PREV" ] && gh release download "$PREV" --pattern global.json --dir "${RUNNER_TEMP}/old" 2>/dev/null; then
             echo "tag=$PREV" >> "$GITHUB_OUTPUT"
             echo "Comparing against $PREV"
+          elif [ -n "$PREV" ] && gh release download "$PREV" --pattern eu.json --dir "${RUNNER_TEMP}/old" 2>/dev/null; then
+            mv "${RUNNER_TEMP}/old/eu.json" "${RUNNER_TEMP}/old/global.json"
+            echo "tag=$PREV" >> "$GITHUB_OUTPUT"
+            echo "Comparing against $PREV (published as eu.json)"
           else
             echo "tag=" >> "$GITHUB_OUTPUT"
             echo "No previous release to compare against"
+          fi
+          if [ -n "$PREV" ]; then
+            gh release download "$PREV" --pattern us.json --dir "${RUNNER_TEMP}/old" 2>/dev/null || true
           fi
 
       - name: Build artifacts
@@ -87,12 +95,12 @@ jobs:
         run: |
           ARGS=(
             --version "${{ steps.version.outputs.version }}"
-            --eu dist/eu.json
+            --global dist/global.json
             --us dist/us.json
             --out "${RUNNER_TEMP}/notes.md"
           )
-          if [ -f "${RUNNER_TEMP}/old/eu.json" ]; then
-            ARGS+=(--old-eu "${RUNNER_TEMP}/old/eu.json")
+          if [ -f "${RUNNER_TEMP}/old/global.json" ]; then
+            ARGS+=(--old-global "${RUNNER_TEMP}/old/global.json")
           fi
           if [ -f "${RUNNER_TEMP}/old/us.json" ]; then
             ARGS+=(--old-us "${RUNNER_TEMP}/old/us.json")
@@ -126,23 +134,8 @@ jobs:
         if: ${{ !inputs.dry_run }}
         run: |
           mkdir -p site
-          cp dist/eu.json dist/us.json dist/eu.txt dist/us.txt site/
-          cat > site/index.html << 'EOF'
-          <!DOCTYPE html>
-          <html lang="en">
-          <head>
-            <meta charset="utf-8">
-            <title>TrueFoundry IP ranges</title>
-          </head>
-          <body>
-            <h1>TrueFoundry IP ranges</h1>
-            <ul>
-              <li><a href="eu.json">EU JSON</a> · <a href="eu.txt">EU text</a></li>
-              <li><a href="us.json">US JSON</a> · <a href="us.txt">US text</a></li>
-            </ul>
-          </body>
-          </html>
-          EOF
+          cp dist/global.json dist/us.json dist/global.txt dist/us.txt site/
+          cp .github/pages/index.html site/index.html
 
       - name: Upload the GitHub Pages artifact
         if: ${{ !inputs.dry_run }}

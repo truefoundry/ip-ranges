@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TrueFoundry IP ranges</title>
+  <meta name="description" content="Outbound IP addresses TrueFoundry uses when it connects to your systems.">
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f3f4f6;
+      --paper: #ffffff;
+      --ink: #16181d;
+      --muted: #5e6670;
+      --line: #e4e7ec;
+      --accent: #2f2a86;
+      --accent-ink: #ffffff;
+      --chip: #eef0f6;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font: 16px/1.5 "Segoe UI", system-ui, sans-serif;
+    }
+    a { color: var(--accent); }
+    header {
+      background: #16142b;
+      color: #f4f4f8;
+    }
+    .wrap { width: min(880px, calc(100% - 40px)); margin: 0 auto; }
+    header .wrap { padding: 40px 0 36px; }
+    .mark {
+      margin: 0 0 18px;
+      font-size: 13px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #b7b4d6;
+    }
+    h1 { margin: 0 0 10px; font-size: 40px; line-height: 1.1; font-weight: 620; letter-spacing: -0.03em; }
+    header p { margin: 0; max-width: 42rem; color: #d5d4e2; }
+    main { padding: 28px 0 64px; }
+    h2 { margin: 36px 0 12px; font-size: 18px; letter-spacing: -0.02em; }
+    .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .card {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 18px 18px 16px;
+    }
+    .card h3 { margin: 0; font-size: 15px; }
+    .count { margin: 4px 0 14px; color: var(--muted); font-size: 14px; min-height: 1.4em; }
+    .links { display: flex; gap: 8px; flex-wrap: wrap; }
+    .links a, button.copy {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 8px;
+      padding: 7px 12px;
+      font: inherit;
+      font-size: 14px;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    .links a {
+      background: var(--accent);
+      color: var(--accent-ink);
+    }
+    .links a.quiet, button.copy {
+      background: var(--chip);
+      color: var(--ink);
+      border: 0;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    th, td { text-align: left; padding: 11px 14px; vertical-align: top; }
+    th { font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); background: #fafbfc; }
+    tr + tr td, tr + tr th { border-top: 1px solid var(--line); }
+    code { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 13px; }
+    .note { color: var(--muted); font-size: 14px; }
+    footer { margin-top: 28px; color: var(--muted); font-size: 14px; }
+    @media (max-width: 680px) {
+      h1 { font-size: 32px; }
+      .cards { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <p class="mark">TrueFoundry</p>
+      <h1>IP ranges</h1>
+      <p>Outbound addresses TrueFoundry uses when it connects to your systems. Allowlist these if you restrict inbound access to your model endpoints, webhooks, databases, or private APIs.</p>
+    </div>
+  </header>
+  <main>
+    <div class="wrap">
+      <h2>Download</h2>
+      <div class="cards">
+        <article class="card">
+          <h3>Global</h3>
+          <p class="count" id="global-count">Loading…</p>
+          <div class="links">
+            <a href="global.json">global.json</a>
+            <a class="quiet" href="global.txt">global.txt</a>
+            <button class="copy" type="button" data-copy="global.json">Copy URL</button>
+          </div>
+        </article>
+        <article class="card">
+          <h3>US control plane</h3>
+          <p class="count" id="us-count">Loading…</p>
+          <div class="links">
+            <a href="us.json">us.json</a>
+            <a class="quiet" href="us.txt">us.txt</a>
+            <button class="copy" type="button" data-copy="us.json">Copy URL</button>
+          </div>
+        </article>
+      </div>
+
+      <h2>Which hostname to allowlist</h2>
+      <p class="note">Find the gateway you connect to in the <a href="https://www.truefoundry.com/docs/ai-gateway/globally-distributed-saas">globally distributed SaaS gateway</a> docs. <code>nat_ips</code> on that hostname is the full allowlist, including the documented fallback region.</p>
+      <table>
+        <thead>
+          <tr><th>Hostname</th><th>Addresses from</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>gateway.truefoundry.ai</code></td><td>Every regional gateway</td></tr>
+          <tr><td><code>us.gateway.truefoundry.ai</code></td><td>North Virginia, San Francisco, Dallas, and Toronto</td></tr>
+          <tr><td><code>eu.gateway.truefoundry.ai</code></td><td>London, Madrid, Gavle, and Doha</td></tr>
+          <tr><td><code>sa.gateway.truefoundry.ai</code></td><td>Sao Paulo</td></tr>
+          <tr><td><code>au.gateway.truefoundry.ai</code></td><td>Sydney, Melbourne, and Singapore</td></tr>
+          <tr><td><code>as.gateway.truefoundry.ai</code></td><td>Mumbai, Singapore, Doha, and Melbourne</td></tr>
+        </tbody>
+      </table>
+
+      <h2>When addresses change</h2>
+      <p class="note">A new address is announced in a <a href="https://github.com/truefoundry/ip-ranges/releases">GitHub Release</a> and starts carrying traffic 15 days later. Allowlist it during those 15 days. When an address is removed, drop it after that release. Pin a version from the release assets instead of these always-latest files.</p>
+      <footer>Plain text files list one CIDR per line. JSON is the same list grouped by hostname.</footer>
+    </div>
+  </main>
+  <script>
+    function uniqueIps(doc) {
+      const ips = new Set();
+      for (const endpoint of doc.endpoints || []) {
+        for (const cidr of endpoint.nat_ips || []) ips.add(cidr);
+      }
+      return ips.size;
+    }
+
+    async function fill(id, file) {
+      const node = document.getElementById(id);
+      try {
+        const doc = await (await fetch(file)).json();
+        const endpoints = (doc.endpoints || []).length;
+        const ips = uniqueIps(doc);
+        node.textContent = endpoints === 0
+          ? "No addresses published yet."
+          : endpoints + " hostnames · " + ips + " addresses";
+      } catch {
+        node.textContent = "";
+      }
+    }
+
+    fill("global-count", "global.json");
+    fill("us-count", "us.json");
+
+    for (const button of document.querySelectorAll("[data-copy]")) {
+      button.addEventListener("click", async () => {
+        const url = new URL(button.dataset.copy, location.href).href;
+        try {
+          await navigator.clipboard.writeText(url);
+          const previous = button.textContent;
+          button.textContent = "Copied";
+          setTimeout(() => { button.textContent = previous; }, 1200);
+        } catch {
+          button.textContent = "Copy failed";
+        }
+      });
+    }
+  </script>
+</body>
+</html>

@@ -3,7 +3,7 @@
 # requires-python = ">=3.11"
 # dependencies = ["jsonschema>=4.21"]
 # ///
-"""Validate eu/ip-ranges.json and us/ip-ranges.json.
+"""Validate global/ip-ranges.json and us/ip-ranges.json.
 
 Run with: uv run .github/scripts/validate.py
 """
@@ -20,9 +20,9 @@ from jsonschema import Draft202012Validator
 
 ROOT = Path(__file__).resolve().parents[2]  # .github/scripts/validate.py -> repo root
 SCHEMA_PATH = ROOT / ".github" / "schema" / "ip-ranges.schema.json"
-PLANES = ("eu", "us")
+PLANES = ("global", "us")
 
-HOSTNAME_RE = re.compile(r"^(?!-)[a-z0-9-]{1,63}(?<!-)(\.(?!-)[a-z0-9-]{1,63}(?<!-))+$")
+HOSTNAME_RE = re.compile(r"^(\*\.)?(?!-)[a-z0-9-]{1,63}(?<!-)(\.(?!-)[a-z0-9-]{1,63}(?<!-))+$")
 
 # Continent hostnames combine the published regional gateways that can serve them,
 # including the documented fallback region. gateway.truefoundry.ai is every regional gateway.
@@ -154,8 +154,8 @@ def validate_file(plane: str, validator: Draft202012Validator) -> list[dict]:
         return []
 
     endpoints = doc["endpoints"]
-    if plane == "eu" and not endpoints:
-        error(rel, "EU publishes gateway addresses; endpoints is empty")
+    if plane == "global" and not endpoints:
+        error(rel, "global publishes gateway addresses; endpoints is empty")
 
     if endpoints != sorted(endpoints, key=endpoint_sort_key):
         error(rel, "endpoints must be ordered control plane, then geolocated gateways, then airport code")
@@ -167,6 +167,8 @@ def validate_file(plane: str, validator: Draft202012Validator) -> list[dict]:
         hostname = endpoint["hostname"]
         if not HOSTNAME_RE.match(hostname):
             error(where, f"hostname {hostname!r} is not a valid lowercase FQDN")
+        if hostname.startswith("*.") and endpoint["type"] != "control_plane":
+            error(where, "only a control plane hostname may start with *.")
 
         if hostname in seen_hosts:
             error(where, f"hostname {hostname!r} is already used by endpoints[{seen_hosts[hostname]}]")

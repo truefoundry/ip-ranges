@@ -2,6 +2,14 @@
   "$schema": "../.github/schema/ip-ranges.schema.json",
   "endpoints": [
     {
+      "type": "control_plane",
+      "hostname": "*.truefoundry.cloud",
+      "nat_ips": [
+        "52.50.208.12/32",
+        "52.57.120.24/32"
+      ]
+    },
+    {
       "type": "gateway",
       "hostname": "gateway.truefoundry.ai",
       "nat_ips": [
