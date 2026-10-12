@@ -1,0 +1,227 @@
+{
+  "$schema": "../.github/schema/ip-ranges.schema.json",
+  "endpoints": [
+    {
+      "type": "gateway",
+      "hostname": "gateway.truefoundry.ai",
+      "nat_ips": [
+        "3.105.148.45/32",
+        "4.165.99.208/32",
+        "4.165.129.123/32",
+        "13.42.115.230/32",
+        "13.126.176.139/32",
+        "13.237.191.204/32",
+        "13.244.129.178/32",
+        "13.246.115.110/32",
+        "13.251.96.74/32",
+        "15.207.191.126/32",
+        "16.51.12.109/32",
+        "16.51.101.207/32",
+        "18.130.148.118/32",
+        "18.143.12.175/32",
+        "20.245.207.53/32",
+        "34.18.22.15/32",
+        "34.18.192.62/32",
+        "34.39.220.106/32",
+        "34.39.220.236/32",
+        "34.130.196.232/32",
+        "34.130.234.128/32",
+        "34.174.18.136/32",
+        "34.174.240.150/32",
+        "34.175.44.33/32",
+        "34.175.219.109/32",
+        "40.75.129.73/32",
+        "52.4.51.133/32",
+        "54.204.114.10/32"
+      ]
+    },
+    {
+      "type": "gateway",
+      "hostname": "us.gateway.truefoundry.ai",
+      "nat_ips": [
+        "20.245.207.53/32",
+        "34.130.196.232/32",
+        "34.130.234.128/32",
+        "34.174.18.136/32",
+        "34.174.240.150/32",
+        "40.75.129.73/32",
+        "52.4.51.133/32",
+        "54.204.114.10/32"
+      ]
+    },
+    {
+      "type": "gateway",
+      "hostname": "eu.gateway.truefoundry.ai",
+      "nat_ips": [
+        "4.165.99.208/32",
+        "4.165.129.123/32",
+        "13.42.115.230/32",
+        "18.130.148.118/32",
+        "34.18.22.15/32",
+        "34.18.192.62/32",
+        "34.175.44.33/32",
+        "34.175.219.109/32"
+      ]
+    },
+    {
+      "type": "gateway",
+      "hostname": "sa.gateway.truefoundry.ai",
+      "nat_ips": [
+        "34.39.220.106/32",
+        "34.39.220.236/32"
+      ]
+    },
+    {
+      "type": "gateway",
+      "hostname": "au.gateway.truefoundry.ai",
+      "nat_ips": [
+        "3.105.148.45/32",
+        "13.237.191.204/32",
+        "13.251.96.74/32",
+        "16.51.12.109/32",
+        "16.51.101.207/32",
+        "18.143.12.175/32"
+      ]
+    },
+    {
+      "type": "gateway",
+      "hostname": "as.gateway.truefoundry.ai",
+      "nat_ips": [
+        "13.126.176.139/32",
+        "13.251.96.74/32",
+        "15.207.191.126/32",
+        "16.51.12.109/32",
+        "16.51.101.207/32",
+        "18.143.12.175/32",
+        "34.18.22.15/32",
+        "34.18.192.62/32"
+      ]
+    },
+    {
+      "type": "gateway",
+      "airport_code": "bom",
+      "hostname": "bom.gateway.truefoundry.ai",
+      "nat_ips": [
+        "13.126.176.139/32",
+        "15.207.191.126/32"
+      ]
+    },
+    {
+      "type": "gateway",
+      "airport_code": "cpt",
+      "hostname": "cpt.gateway.truefoundry.ai",
+      "nat_ips": [
+        "13.244.129.178/32",
+        "13.246.115.110/32"
+      ]
+    },
+    {
+      "type": "gateway",
+      "airport_code": "dfw",
+      "hostname": "dfw.gateway.truefoundry.ai",
+      "nat_ips": [
+        "34.174.18.136/32",
+        "34.174.240.150/32"
+      ]
+    },
+    {
+      "type": "gateway",
+      "airport_code": "dia",
+      "hostname": "dia.gateway.truefoundry.ai",
+      "nat_ips": [
+        "34.18.22.15/32",
+        "34.18.192.62/32"
+      ]
+    },
+    {
+      "type": "gateway",
+      "airport_code": "gru",
+      "hostname": "gru.gateway.truefoundry.ai",
+      "nat_ips": [
+        "34.39.220.106/32",
+        "34.39.220.236/32"
+      ]
+    },
+    {
+      "type": "gateway",
+      "airport_code": "gvx",
+      "hostname": "gvx.gateway.truefoundry.ai",
+      "nat_ips": [
+        "4.165.99.208/32",
+        "4.165.129.123/32"
+      ]
+    },
+    {
+      "type": "gateway",
+      "airport_code": "lhr",
+      "hostname": "lhr.gateway.truefoundry.ai",
+      "nat_ips": [
+        "13.42.115.230/32",
+        "18.130.148.118/32"
+      ]
+    },
+    {
+      "type": "gateway",
+      "airport_code": "mad",
+      "hostname": "mad.gateway.truefoundry.ai",
+      "nat_ips": [
+        "34.175.44.33/32",
+        "34.175.219.109/32"
+      ]
+    },
+    {
+      "type": "gateway",
+      "airport_code": "mel",
+      "hostname": "mel.gateway.truefoundry.ai",
+      "nat_ips": [
+        "16.51.12.109/32",
+        "16.51.101.207/32"
+      ]
+    },
+    {
+      "type": "gateway",
+      "airport_code": "orf",
+      "hostname": "orf.gateway.truefoundry.ai",
+      "nat_ips": [
+        "52.4.51.133/32",
+        "54.204.114.10/32"
+      ]
+    },
+    {
+      "type": "gateway",
+      "airport_code": "sfo",
+      "hostname": "sfo.gateway.truefoundry.ai",
+      "nat_ips": [
+        "20.245.207.53/32",
+        "40.75.129.73/32"
+      ]
+    },
+    {
+      "type": "gateway",
+      "airport_code": "sin",
+      "hostname": "sin.gateway.truefoundry.ai",
+      "nat_ips": [
+        "13.251.96.74/32",
+        "18.143.12.175/32"
+      ]
+    },
+    {
+      "type": "gateway",
+      "airport_code": "syd",
+      "hostname": "syd.gateway.truefoundry.ai",
+      "nat_ips": [
+        "3.105.148.45/32",
+        "13.237.191.204/32"
+      ]
+    },
+    {
+      "type": "gateway",
+      "airport_code": "yyz",
+      "hostname": "yyz.gateway.truefoundry.ai",
+      "nat_ips": [
+        "34.130.196.232/32",
+        "34.130.234.128/32"
+      ]
+    }
+  ]
+}

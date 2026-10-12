@@ -3,9 +3,10 @@
 # requires-python = ">=3.11"
 # dependencies = []
 # ///
-"""Diff two built nat-ips.json files and write release notes a firewall admin can act on.
+"""Diff published IP range files and write release notes.
 
-Run with: uv run scripts/release_notes.py --new dist/nat-ips.json --old /tmp/prev.json
+Prints publish=, added=, and removed= for the release workflow.
+Run with: uv run .github/scripts/release_notes.py --version 2026.10.12 --eu dist/eu.json --us dist/us.json
 """
 
 from __future__ import annotations
@@ -13,140 +14,165 @@ from __future__ import annotations
 import argparse
 import ipaddress
 import json
-from collections import defaultdict
+import sys
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 REPO = "https://github.com/truefoundry/nat-ips"
-
-
-def ip_owners(doc: dict) -> dict[str, list[dict]]:
-    """Map every CIDR to all entries that use it.
-
-    One NAT gateway can back several entries, so this is deliberately many-to-many —
-    attributing an IP to a single entry would hide where it is actually in use.
-    """
-    index: dict[str, list[dict]] = defaultdict(list)
-    for entry in doc.get("entries", []):
-        for cidr in entry["nat_ips"]:
-            index[cidr].append(entry)
-    return index
-
-
-def describe(entry: dict) -> str:
-    bits = [entry["control_plane"].upper(), entry["type"].replace("_", " "), entry["region"]]
-    if entry.get("airport_code"):
-        bits.append(entry["airport_code"].upper())
-    return " · ".join(bits)
-
-
-def host_label(entry: dict) -> str:
-    """Not every cluster has a published endpoint; say so rather than print empty backticks."""
-    host = entry.get("host")
-    return f"`{host}`" if host else "_no published endpoint_"
+PLANES = ("eu", "us")
+ACTIVATION_DAYS = 15
 
 
 def ip_sort(cidr: str) -> ipaddress.IPv4Network:
     return ipaddress.IPv4Network(cidr)
 
 
-def render_changed(title: str, cidrs: list[str], index: dict[str, list[dict]]) -> list[str]:
-    """Group changed IPs under every entry that uses them."""
-    if not cidrs:
-        return []
+def load_doc(path: Path | None) -> dict:
+    if path is None:
+        return {"endpoints": []}
+    if not path.exists():
+        raise SystemExit(f"missing {path}")
+    return json.loads(path.read_text())
 
-    buckets: dict[tuple[str, str], set[str]] = defaultdict(set)
-    for cidr in cidrs:
-        for entry in index[cidr]:
-            buckets[(describe(entry), host_label(entry))].add(cidr)
 
-    lines = [f"### {title} ({len(cidrs)})", ""]
-    for (label, host), group in sorted(buckets.items()):
-        lines.append(f"**{label}** — {host}")
-        lines.extend(f"- `{cidr}`" for cidr in sorted(group, key=ip_sort))
+def cidrs_of(doc: dict) -> set[str]:
+    return {cidr for endpoint in doc.get("endpoints", []) for cidr in endpoint["nat_ips"]}
+
+
+def by_hostname(doc: dict) -> dict[str, set[str]]:
+    return {endpoint["hostname"]: set(endpoint["nat_ips"]) for endpoint in doc.get("endpoints", [])}
+
+
+def noun(count: int, singular: str, plural: str) -> str:
+    return f"{count} {singular if count == 1 else plural}"
+
+
+def activation_date(version: str) -> str | None:
+    """CalVer date plus 15 days. Local and CI versions have no calendar date."""
+    date_part = version.split("-", 1)[0]
+    try:
+        published = datetime.strptime(date_part, "%Y.%m.%d").replace(tzinfo=timezone.utc)
+    except ValueError:
+        return None
+    return (published + timedelta(days=ACTIVATION_DAYS)).strftime("%Y-%m-%d")
+
+
+def render_full(plane: str, doc: dict) -> list[str]:
+    lines: list[str] = []
+    for endpoint in doc.get("endpoints", []):
+        lines.append(f"**{plane.upper()}** · `{endpoint['hostname']}`")
+        lines.extend(f"- `{cidr}`" for cidr in endpoint["nat_ips"])
         lines.append("")
     return lines
 
 
-def render_full(doc: dict) -> list[str]:
-    """List every entry in order — used for the first release, where nothing is a 'change'."""
-    lines = ["### Published IPs", ""]
-    for entry in doc.get("entries", []):
-        lines.append(f"**{describe(entry)}** — {host_label(entry)}")
-        lines.extend(f"- `{cidr}`" for cidr in entry["nat_ips"])
+def render_hostname_changes(plane: str, hostname: str, added: list[str], removed: list[str]) -> list[str]:
+    lines = [f"### {plane.upper()} · `{hostname}`", ""]
+    if added:
+        lines.append("Added:")
+        lines.extend(f"- `{cidr}`" for cidr in added)
+        lines.append("")
+    if removed:
+        lines.append("Removed:")
+        lines.extend(f"- `{cidr}`" for cidr in removed)
         lines.append("")
     return lines
 
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--new", required=True, type=Path)
-    parser.add_argument("--old", type=Path, help="omit for the first release")
+    parser.add_argument("--version", required=True)
+    parser.add_argument("--eu", required=True, type=Path)
+    parser.add_argument("--us", required=True, type=Path)
+    parser.add_argument("--old-eu", type=Path)
+    parser.add_argument("--old-us", type=Path)
     parser.add_argument("--out", type=Path, default=Path("RELEASE_NOTES.md"))
     args = parser.parse_args()
 
-    new_doc = json.loads(args.new.read_text())
-    new_index = ip_owners(new_doc)
-    version = new_doc["version"]
+    new_docs = {"eu": load_doc(args.eu), "us": load_doc(args.us)}
+    has_baseline = args.old_eu is not None or args.old_us is not None
+    old_docs = {
+        "eu": load_doc(args.old_eu) if has_baseline else {"endpoints": []},
+        "us": load_doc(args.old_us) if has_baseline else {"endpoints": []},
+    }
 
-    old_doc: dict = {}
-    if args.old and args.old.exists():
-        old_doc = json.loads(args.old.read_text())
-    old_index = ip_owners(old_doc)
+    added_ips: set[str] = set()
+    removed_ips: set[str] = set()
+    hostname_changes: list[tuple[str, str, list[str], list[str]]] = []
 
-    added = sorted(set(new_index) - set(old_index), key=ip_sort)
-    removed = sorted(set(old_index) - set(new_index), key=ip_sort)
+    for plane in PLANES:
+        new_set = cidrs_of(new_docs[plane])
+        old_set = cidrs_of(old_docs[plane]) if has_baseline else set()
+        if has_baseline:
+            added_ips |= new_set - old_set
+            removed_ips |= old_set - new_set
 
-    lines = [f"## TrueFoundry outbound NAT IPs — {version}", ""]
+        new_hosts = by_hostname(new_docs[plane])
+        old_hosts = by_hostname(old_docs[plane]) if has_baseline else {}
+        for hostname in sorted(set(new_hosts) | set(old_hosts)):
+            added = sorted(new_hosts.get(hostname, set()) - old_hosts.get(hostname, set()), key=ip_sort)
+            removed = sorted(old_hosts.get(hostname, set()) - new_hosts.get(hostname, set()), key=ip_sort)
+            if added or removed:
+                hostname_changes.append((plane, hostname, added, removed))
 
-    if not old_doc:
+    publish = not has_baseline or bool(added_ips or removed_ips or hostname_changes)
+    lines = [f"## TrueFoundry IP ranges — {args.version}", ""]
+
+    if not has_baseline:
         lines += [
-            "First published release. Allowlist the IPs below for traffic arriving from TrueFoundry.",
+            "First published release. These addresses are in use. Allowlist them for traffic arriving from TrueFoundry.",
+            "",
+            "Addresses added in a later release start carrying traffic 15 days after that release. "
+            "When an address is removed, a release is published so it can be dropped from allowlists.",
             "",
         ]
-        lines += render_full(new_doc)
-    elif not added and not removed:
+        for plane in PLANES:
+            lines += render_full(plane, new_docs[plane])
+    elif not hostname_changes:
         lines += [
-            f"No IP changes since `{old_doc['version']}`. Metadata or docs only — **no firewall action needed**.",
+            "No IP changes since the previous release. **No firewall action needed.**",
             "",
         ]
     else:
-        action = []
-        if added:
-            action.append(f"**{len(added)} IP(s) to add**")
-        if removed:
-            action.append(f"**{len(removed)} IP(s) safe to remove**")
-        lines += [
-            f"Changes since `{old_doc['version']}`: " + " and ".join(action) + ".",
-            "",
-            "> Add new IPs **before** the rollout date. Removing retired IPs is optional and can wait.",
-            "",
-        ]
-        lines += render_changed("Added", added, new_index)
-        lines += render_changed("Removed", removed, old_index)
+        if added_ips:
+            live = activation_date(args.version)
+            when = f" on **{live}**" if live else ""
+            lines += [
+                f"Allowlist **{noun(len(added_ips), 'new address', 'new addresses')}** "
+                f"before they start carrying traffic{when}, {ACTIVATION_DAYS} days after this release.",
+                "",
+            ]
+        if removed_ips:
+            lines += [
+                f"**{noun(len(removed_ips), 'address removed', 'addresses removed')}.** "
+                "They are no longer used and can be dropped from allowlists.",
+                "",
+            ]
+        if hostname_changes and not added_ips and not removed_ips:
+            lines += [
+                "Addresses moved between hostnames. Update the allowlist for the hostnames below.",
+                "",
+            ]
+        for plane, hostname, added, removed in hostname_changes:
+            lines += render_hostname_changes(plane, hostname, added, removed)
 
-    # Only link per-plane assets that this release actually built.
-    planes = sorted({e["control_plane"] for e in new_doc.get("entries", [])})
+    lines += ["---", "", "### Full list", ""]
+    for plane in PLANES:
+        count = len(cidrs_of(new_docs[plane]))
+        lines.append(
+            f"- {plane.upper()} ({count} addresses): {REPO}/releases/download/v{args.version}/{plane}.json"
+        )
     lines += [
-        "---",
-        "",
-        "### Full list",
-        "",
-        f"- Everything: {REPO}/releases/download/v{version}/nat-ips.json",
-    ]
-    lines += [
-        f"- {plane.upper()} control plane: {REPO}/releases/download/v{version}/{plane}.json"
-        for plane in planes
-    ]
-    lines += [
-        "- Plain text for firewall scripts: swap `.json` for `.txt` in any URL above.",
-        f"- Always-latest instead of pinned: {REPO}/releases/latest/download/nat-ips.json",
-        "",
-        f"Totals in this release: **{new_doc['entry_count']} entries, {new_doc['ip_count']} unique IPs**.",
+        "- Plain text, one CIDR per line: swap `.json` for `.txt`.",
+        f"- Always-latest: {REPO}/releases/latest/download/eu.json",
         "",
     ]
 
     args.out.write_text("\n".join(lines))
-    print(f"wrote {args.out} ({len(added)} added, {len(removed)} removed)")
+    print(f"publish={'true' if publish else 'false'}")
+    print(f"added={len(added_ips)}")
+    print(f"removed={len(removed_ips)}")
+    print(f"wrote {args.out} ({len(added_ips)} added, {len(removed_ips)} removed)", file=sys.stderr)
     return 0
 
 

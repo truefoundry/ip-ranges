@@ -3,9 +3,9 @@
 # requires-python = ">=3.11"
 # dependencies = []
 # ///
-"""Flatten the per-plane source files under data/ into the published artifacts in dist/.
+"""Copy eu/ and us/ into the release artifacts in dist/.
 
-Run with: uv run scripts/build.py --version 2026.10.12
+Run with: uv run .github/scripts/build.py --version 2026.10.12
 """
 
 from __future__ import annotations
@@ -17,72 +17,23 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]  # .github/scripts/build.py -> repo root
-DATA_DIR = ROOT / "data"
 DIST_DIR = ROOT / "dist"
-
-PLANES = ("us", "eu")
-
-
-def sort_key(entry: dict) -> tuple:
-    """Stable ordering so a rebuild with no data change produces a byte-identical file."""
-    return (
-        entry["control_plane"],
-        0 if entry["type"] == "control_plane" else 1,
-        entry.get("airport_code", ""),
-        entry["region"],
-    )
+PLANES = ("eu", "us")
+REPO = "https://github.com/truefoundry/nat-ips"
 
 
-def load_entries() -> list[dict]:
-    entries: list[dict] = []
-
-    paths = sorted(DATA_DIR.rglob("*.json"))
-    if not paths:
-        # Never fall through to an empty build: that would publish a release telling
-        # customers there is nothing to allowlist.
-        raise SystemExit(f"no source files found under {DATA_DIR} — refusing to build")
-
-    for path in paths:
-        doc = json.loads(path.read_text())
-        control_plane = doc["control_plane"]
-
-        for source in doc["entries"]:
-            entry = {
-                "control_plane": control_plane,
-                "type": source["type"],
-                "cloud": source["cloud"],
-                "region": source["region"],
-                "continent": source["continent"],
-            }
-
-            if source["type"] == "gateway":
-                # Read defensively: the PR diff job builds the base branch's data with this
-                # script, so a schema change must not make the baseline unbuildable.
-                if "airport_code" in source:
-                    entry["airport_code"] = source["airport_code"]
-                entry["gateway_host"] = doc.get("host")
-                # A cluster with no published endpoint gets no host. Inventing one would
-                # tell customers to resolve a name that does not exist.
-                if "hostname" in source:
-                    entry["host"] = source["hostname"]
-            else:
-                entry["host"] = doc.get("host_pattern") or doc.get("host")
-
-            if "notes" in source:
-                entry["notes"] = source["notes"]
-
-            entry["nat_ips"] = sorted(
-                source["nat_ips"], key=lambda cidr: ipaddress.IPv4Network(cidr)
-            )
-            entries.append(entry)
-
-    entries.sort(key=sort_key)
-    return entries
-
-
-def flat_ip_list(entries: list[dict]) -> list[str]:
-    unique = {cidr for entry in entries for cidr in entry["nat_ips"]}
+def flat_ips(endpoints: list[dict]) -> list[str]:
+    unique = {cidr for endpoint in endpoints for cidr in endpoint["nat_ips"]}
     return sorted(unique, key=lambda cidr: ipaddress.IPv4Network(cidr))
+
+
+def load_plane(plane: str) -> dict:
+    path = ROOT / plane / "ip-ranges.json"
+    if not path.exists():
+        raise SystemExit(f"missing {path} — refusing to build")
+    doc = json.loads(path.read_text())
+    # Release assets are the public document. $schema is only for editors in the repo.
+    return {"endpoints": doc["endpoints"]}
 
 
 def write_json(path: Path, payload: dict) -> None:
@@ -90,12 +41,12 @@ def write_json(path: Path, payload: dict) -> None:
     print(f"wrote {path.relative_to(ROOT)}")
 
 
-def write_text(path: Path, version: str, timestamp: str, ips: list[str]) -> None:
+def write_text(path: Path, plane: str, version: str, timestamp: str, ips: list[str]) -> None:
     header = [
-        "# TrueFoundry outbound NAT IPs",
+        f"# TrueFoundry {plane.upper()} outbound NAT IPs",
         f"# version: {version}",
         f"# generated: {timestamp}",
-        "# https://github.com/truefoundry/nat-ips",
+        f"# {REPO}",
     ]
     path.write_text("\n".join(header + ips) + "\n")
     print(f"wrote {path.relative_to(ROOT)}")
@@ -107,29 +58,19 @@ def main() -> int:
     args = parser.parse_args()
 
     timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-    entries = load_entries()
     DIST_DIR.mkdir(exist_ok=True)
 
-    def envelope(subset: list[dict]) -> dict:
-        return {
-            "version": args.version,
-            "generation_timestamp": timestamp,
-            "entry_count": len(subset),
-            "ip_count": len(flat_ip_list(subset)),
-            "entries": subset,
-        }
-
-    write_json(DIST_DIR / "nat-ips.json", envelope(entries))
-    write_text(DIST_DIR / "nat-ips.txt", args.version, timestamp, flat_ip_list(entries))
-
     for plane in PLANES:
-        subset = [e for e in entries if e["control_plane"] == plane]
-        if not subset:
-            continue
-        write_json(DIST_DIR / f"{plane}.json", envelope(subset))
-        write_text(DIST_DIR / f"{plane}.txt", args.version, timestamp, flat_ip_list(subset))
+        doc = load_plane(plane)
+        write_json(DIST_DIR / f"{plane}.json", doc)
+        write_text(
+            DIST_DIR / f"{plane}.txt",
+            plane,
+            args.version,
+            timestamp,
+            flat_ips(doc["endpoints"]),
+        )
 
-    print(f"\n{len(entries)} entries, {len(flat_ip_list(entries))} unique IPs, version {args.version}")
     return 0
 
 

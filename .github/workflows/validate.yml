@@ -3,15 +3,17 @@ name: Validate
 on:
   pull_request:
     paths:
-      - "data/**"
-      - "schema/**"
+      - "eu/**"
+      - "us/**"
+      - ".github/schema/**"
       - ".github/scripts/**"
       - ".github/workflows/validate.yml"
   push:
     branches: [main]
     paths:
-      - "data/**"
-      - "schema/**"
+      - "eu/**"
+      - "us/**"
+      - ".github/schema/**"
       - ".github/scripts/**"
   workflow_dispatch:
 
@@ -56,24 +58,28 @@ jobs:
       - name: Build this branch
         run: |
           uv run .github/scripts/build.py --version "pr-${{ github.event.pull_request.number }}"
-          cp dist/nat-ips.json "${RUNNER_TEMP}/new.json"
+          cp dist/eu.json dist/us.json "${RUNNER_TEMP}/"
 
       - name: Build the base branch
         run: |
-          git checkout "origin/${{ github.base_ref }}" -- data/
+          git checkout "origin/${{ github.base_ref }}" -- eu us
           uv run .github/scripts/build.py --version "${{ github.base_ref }}"
-          cp dist/nat-ips.json "${RUNNER_TEMP}/old.json"
-          git checkout HEAD -- data/
+          mkdir -p "${RUNNER_TEMP}/old"
+          cp dist/eu.json dist/us.json "${RUNNER_TEMP}/old/"
+          git checkout HEAD -- eu us
 
       - name: Render diff
         run: |
           uv run .github/scripts/release_notes.py \
-            --new "${RUNNER_TEMP}/new.json" \
-            --old "${RUNNER_TEMP}/old.json" \
+            --version "pr-${{ github.event.pull_request.number }}" \
+            --eu "${RUNNER_TEMP}/eu.json" \
+            --us "${RUNNER_TEMP}/us.json" \
+            --old-eu "${RUNNER_TEMP}/old/eu.json" \
+            --old-us "${RUNNER_TEMP}/old/us.json" \
             --out "${RUNNER_TEMP}/diff.md"
 
           {
-            echo "<!-- nat-ips-diff -->"
+            echo "<!-- ip-ranges-diff -->"
             echo "## Proposed IP changes"
             echo
             tail -n +2 "${RUNNER_TEMP}/diff.md"
