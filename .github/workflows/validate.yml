@@ -62,11 +62,21 @@ jobs:
 
       - name: Build the base branch
         run: |
-          git checkout "origin/${{ github.base_ref }}" -- eu us
-          uv run .github/scripts/build.py --version "${{ github.base_ref }}"
+          # main predates eu/ and us/. An empty baseline still produces a useful
+          # "everything added" comment instead of failing the checkout.
           mkdir -p "${RUNNER_TEMP}/old"
-          cp dist/eu.json dist/us.json "${RUNNER_TEMP}/old/"
-          git checkout HEAD -- eu us
+          base="origin/${{ github.base_ref }}"
+          if git cat-file -e "${base}:eu/ip-ranges.json" \
+            && git cat-file -e "${base}:us/ip-ranges.json"; then
+            git checkout "$base" -- eu us
+            uv run .github/scripts/build.py --version "${{ github.base_ref }}"
+            cp dist/eu.json dist/us.json "${RUNNER_TEMP}/old/"
+            git checkout HEAD -- eu us
+          else
+            echo "Base branch has no eu/ or us/ ip-ranges yet; diffing against an empty list."
+            printf '%s\n' '{"endpoints":[]}' > "${RUNNER_TEMP}/old/eu.json"
+            printf '%s\n' '{"endpoints":[]}' > "${RUNNER_TEMP}/old/us.json"
+          fi
 
       - name: Render diff
         run: |
