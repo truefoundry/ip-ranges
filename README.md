@@ -9,12 +9,14 @@ The directory is the control plane:
 | EU | [`eu/ip-ranges.json`](eu/ip-ranges.json) |
 | US | [`us/ip-ranges.json`](us/ip-ranges.json) |
 
-Each [GitHub Release](https://github.com/truefoundry/nat-ips/releases) attaches the same lists:
+Always-latest URLs are on GitHub Pages:
 
-- https://github.com/truefoundry/nat-ips/releases/latest/download/eu.json
-- https://github.com/truefoundry/nat-ips/releases/latest/download/us.json
+- https://truefoundry.github.io/ip-ranges/eu.json
+- https://truefoundry.github.io/ip-ranges/us.json
 
-Replace `.json` with `.txt` for one CIDR per line. Pin a release by replacing `latest/download` with `download/v2026.10.12`.
+Replace `.json` with `.txt` for one CIDR per line.
+
+Each [GitHub Release](https://github.com/truefoundry/ip-ranges/releases) attaches the same lists, so a version can be pinned: `https://github.com/truefoundry/ip-ranges/releases/download/v2026.10.12/eu.json`.
 
 ## What to allowlist
 
@@ -67,9 +69,9 @@ When an address is removed, a new release is published. Drop it from your allowl
 To be notified, choose **Watch → Custom → Releases** on this repository, or subscribe to:
 
 ```
-https://github.com/truefoundry/nat-ips/releases.atom
+https://github.com/truefoundry/ip-ranges/releases.atom
 ```
 
 ## Reporting a problem
 
-Something wrong or missing? [Open an issue](https://github.com/truefoundry/nat-ips/issues) or contact TrueFoundry support. For anything security-sensitive, email security@truefoundry.com.
+Something wrong or missing? [Open an issue](https://github.com/truefoundry/ip-ranges/issues) or contact TrueFoundry support. For anything security-sensitive, email security@truefoundry.com.

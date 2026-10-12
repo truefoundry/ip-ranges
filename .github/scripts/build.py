@@ -19,7 +19,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]  # .github/scripts/build.py -> repo root
 DIST_DIR = ROOT / "dist"
 PLANES = ("eu", "us")
-REPO = "https://github.com/truefoundry/nat-ips"
+REPO = "https://github.com/truefoundry/ip-ranges"
 
 
 def flat_ips(endpoints: list[dict]) -> list[str]:

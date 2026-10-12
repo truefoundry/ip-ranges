@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://raw.githubusercontent.com/truefoundry/nat-ips/main/.github/schema/ip-ranges.schema.json",
+  "$id": "https://raw.githubusercontent.com/truefoundry/ip-ranges/main/.github/schema/ip-ranges.schema.json",
   "title": "TrueFoundry IP ranges",
   "description": "Outbound NAT addresses for one control plane. The directory (eu or us) is the control plane.",
   "type": "object",

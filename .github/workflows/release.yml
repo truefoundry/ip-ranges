@@ -17,6 +17,9 @@ on:
 
 permissions:
   contents: write
+  actions: write
+  pages: write
+  id-token: write
 
 concurrency:
   group: release
@@ -118,3 +121,43 @@ jobs:
             --notes-file "${RUNNER_TEMP}/notes.md" \
             --latest \
             dist/*
+
+      - name: Prepare the GitHub Pages site
+        if: ${{ !inputs.dry_run }}
+        run: |
+          mkdir -p site
+          cp dist/eu.json dist/us.json dist/eu.txt dist/us.txt site/
+          cat > site/index.html << 'EOF'
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+            <meta charset="utf-8">
+            <title>TrueFoundry IP ranges</title>
+          </head>
+          <body>
+            <h1>TrueFoundry IP ranges</h1>
+            <ul>
+              <li><a href="eu.json">EU JSON</a> · <a href="eu.txt">EU text</a></li>
+              <li><a href="us.json">US JSON</a> · <a href="us.txt">US text</a></li>
+            </ul>
+          </body>
+          </html>
+          EOF
+
+      - name: Upload the GitHub Pages artifact
+        if: ${{ !inputs.dry_run }}
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  pages:
+    needs: release
+    if: ${{ !inputs.dry_run && needs.release.result == 'success' }}
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
