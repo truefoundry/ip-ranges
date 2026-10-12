@@ -50,9 +50,12 @@ def load_entries() -> list[dict]:
             }
 
             if source["type"] == "gateway":
-                entry["status"] = source["status"]
-                entry["airport_code"] = source["airport_code"]
-                entry["gateway_host"] = doc["host"]
+                # Read defensively: the PR diff job builds the base branch's data with this
+                # script, so a schema change must not make the baseline unbuildable.
+                for key in ("status", "airport_code"):
+                    if key in source:
+                        entry[key] = source[key]
+                entry["gateway_host"] = doc.get("host")
                 # A provisioned cluster has no published endpoint yet, so it gets no host.
                 # Inventing one would tell customers to resolve a name that does not exist.
                 if "hostname" in source:
