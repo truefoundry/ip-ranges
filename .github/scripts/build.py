@@ -3,7 +3,7 @@
 # requires-python = ">=3.11"
 # dependencies = []
 # ///
-"""Copy eu/ and us/ into the release artifacts in dist/.
+"""Copy global/ and us/ into the release artifacts in dist/.
 
 Run with: uv run .github/scripts/build.py --version 2026.10.12
 """
@@ -18,7 +18,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]  # .github/scripts/build.py -> repo root
 DIST_DIR = ROOT / "dist"
-PLANES = ("eu", "us")
+PLANES = ("global", "us")
 REPO = "https://github.com/truefoundry/ip-ranges"
 
 

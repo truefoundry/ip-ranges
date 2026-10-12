@@ -104,12 +104,12 @@
       <h2>Download</h2>
       <div class="cards">
         <article class="card">
-          <h3>EU control plane</h3>
-          <p class="count" id="eu-count">Loading…</p>
+          <h3>Global</h3>
+          <p class="count" id="global-count">Loading…</p>
           <div class="links">
-            <a href="eu.json">eu.json</a>
-            <a class="quiet" href="eu.txt">eu.txt</a>
-            <button class="copy" type="button" data-copy="eu.json">Copy URL</button>
+            <a href="global.json">global.json</a>
+            <a class="quiet" href="global.txt">global.txt</a>
+            <button class="copy" type="button" data-copy="global.json">Copy URL</button>
           </div>
         </article>
         <article class="card">
@@ -167,7 +167,7 @@
       }
     }
 
-    fill("eu-count", "eu.json");
+    fill("global-count", "global.json");
     fill("us-count", "us.json");
 
     for (const button of document.querySelectorAll("[data-copy]")) {

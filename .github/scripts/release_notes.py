@@ -6,7 +6,7 @@
 """Diff published IP range files and write release notes.
 
 Prints publish=, added=, and removed= for the release workflow.
-Run with: uv run .github/scripts/release_notes.py --version 2026.10.12 --eu dist/eu.json --us dist/us.json
+Run with: uv run .github/scripts/release_notes.py --version 2026.10.12 --global dist/global.json --us dist/us.json
 """
 
 from __future__ import annotations
@@ -20,7 +20,7 @@ from pathlib import Path
 
 REPO = "https://github.com/truefoundry/ip-ranges"
 PAGES = "https://truefoundry.github.io/ip-ranges"
-PLANES = ("eu", "us")
+PLANES = ("global", "us")
 ACTIVATION_DAYS = 15
 
 
@@ -83,17 +83,17 @@ def render_hostname_changes(plane: str, hostname: str, added: list[str], removed
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--version", required=True)
-    parser.add_argument("--eu", required=True, type=Path)
+    parser.add_argument("--global", required=True, type=Path, dest="global_doc")
     parser.add_argument("--us", required=True, type=Path)
-    parser.add_argument("--old-eu", type=Path)
+    parser.add_argument("--old-global", type=Path)
     parser.add_argument("--old-us", type=Path)
     parser.add_argument("--out", type=Path, default=Path("RELEASE_NOTES.md"))
     args = parser.parse_args()
 
-    new_docs = {"eu": load_doc(args.eu), "us": load_doc(args.us)}
-    has_baseline = args.old_eu is not None or args.old_us is not None
+    new_docs = {"global": load_doc(args.global_doc), "us": load_doc(args.us)}
+    has_baseline = args.old_global is not None or args.old_us is not None
     old_docs = {
-        "eu": load_doc(args.old_eu) if has_baseline else {"endpoints": []},
+        "global": load_doc(args.old_global) if has_baseline else {"endpoints": []},
         "us": load_doc(args.old_us) if has_baseline else {"endpoints": []},
     }
 
@@ -165,7 +165,7 @@ def main() -> int:
         )
     lines += [
         "- Plain text, one CIDR per line: swap `.json` for `.txt`.",
-        f"- Always-latest: {PAGES}/eu.json",
+        f"- Always-latest: {PAGES}/global.json",
         "",
     ]
 

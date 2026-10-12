@@ -6,17 +6,17 @@ The directory is the control plane:
 
 | Control plane | List |
 | --- | --- |
-| EU | [`eu/ip-ranges.json`](eu/ip-ranges.json) |
+| Global | [`global/ip-ranges.json`](global/ip-ranges.json) |
 | US | [`us/ip-ranges.json`](us/ip-ranges.json) |
 
-Always-latest URLs are on GitHub Pages:
+The EU control plane is the global control plane. Always-latest URLs are on GitHub Pages:
 
-- https://truefoundry.github.io/ip-ranges/eu.json
+- https://truefoundry.github.io/ip-ranges/global.json
 - https://truefoundry.github.io/ip-ranges/us.json
 
 Replace `.json` with `.txt` for one CIDR per line.
 
-Each [GitHub Release](https://github.com/truefoundry/ip-ranges/releases) attaches the same lists, so a version can be pinned: `https://github.com/truefoundry/ip-ranges/releases/download/v2026.10.12/eu.json`.
+Each [GitHub Release](https://github.com/truefoundry/ip-ranges/releases) attaches the same lists, so a version can be pinned: `https://github.com/truefoundry/ip-ranges/releases/download/v2026.10.12/global.json`.
 
 ## What to allowlist
 
@@ -27,7 +27,7 @@ Find the hostname you connect to. `nat_ips` is every address that hostname can c
   "endpoints": [
     {
       "type": "control_plane",
-      "hostname": "eu.truefoundry.cloud",
+      "hostname": "*.truefoundry.cloud",
       "nat_ips": ["203.0.113.10/32"]
     },
     {
@@ -55,8 +55,6 @@ Find the hostname you connect to. `nat_ips` is every address that hostname can c
 | `sa.gateway.truefoundry.ai` | Sao Paulo |
 | `au.gateway.truefoundry.ai` | Sydney, Melbourne, and Singapore |
 | `as.gateway.truefoundry.ai` | Mumbai, Singapore, Doha, and Melbourne |
-
-`us/ip-ranges.json` is empty until the US control plane publishes egress addresses.
 
 ## When addresses change
 
