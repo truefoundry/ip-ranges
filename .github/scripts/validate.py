@@ -37,7 +37,7 @@ GEO_ORDER = (
 )
 REGIONAL_GATEWAYS = {
     "us.gateway.truefoundry.ai": frozenset({"orf", "sfo", "dfw", "yyz"}),
-    "eu.gateway.truefoundry.ai": frozenset({"lhr", "mad", "gvx", "dia"}),
+    "eu.gateway.truefoundry.ai": frozenset({"mad", "gvx", "dia"}),
     "sa.gateway.truefoundry.ai": frozenset({"gru"}),
     "au.gateway.truefoundry.ai": frozenset({"syd", "mel", "sin"}),
     "as.gateway.truefoundry.ai": frozenset({"bom", "sin", "dia", "mel"}),
