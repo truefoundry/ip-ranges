@@ -22,7 +22,9 @@ permissions:
 
 jobs:
   validate:
-    runs-on: ubuntu-latest
+    runs-on:
+      group: public-runner-group
+      labels: "gh-pb-runners-2c"
     steps:
       - uses: actions/checkout@v4
 
@@ -41,7 +43,9 @@ jobs:
     # Informational only: `validate` is the gate, so a baseline that cannot be rebuilt
     # (an old branch, a schema change) must never block the PR.
     if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
+    runs-on:
+      group: public-runner-group
+      labels: "gh-pb-runners-2c"
     continue-on-error: true
     permissions:
       contents: read
