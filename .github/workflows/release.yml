@@ -17,11 +17,10 @@ on:
         type: boolean
         default: false
 
+# Granted per job below. Both jobs need id-token: write for the Tailscale
+# federated identity, on top of what each does to the repo.
 permissions:
-  contents: write
-  actions: write
-  pages: write
-  id-token: write
+  contents: read
 
 concurrency:
   group: release
@@ -29,10 +28,25 @@ concurrency:
 
 jobs:
   release:
-    runs-on:
-      group: public-runner-group
-      labels: "gh-pb-runners-2c"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # gh release create
+      id-token: write # Tailscale federated identity
     steps:
+      # FIRST STEP, DELIBERATELY. Every GitHub call below (checkout, the tag
+      # fetch, gh release) authenticates with GITHUB_TOKEN, which the org IP
+      # allow list filters, and a standard runner's IP is not on it. Joining the
+      # tailnet sends GitHub traffic out through the app connector's allow-listed
+      # IP; the tag reaches that connector and nothing else. The credential only
+      # matches release.yml on main, so a dispatch from another branch stops here.
+      - name: Join the tailnet for GitHub egress
+        uses: tailscale/github-action@306e68a486fd2350f2bfc3b19fcd143891a4a2d8 # v4.1.2
+        with:
+          oauth-client-id: ${{ vars.TS_CI_RELEASE_CLIENT_ID }}
+          audience: ${{ vars.TS_CI_RELEASE_AUDIENCE }}
+          tags: tag:ci-github-egress
+          hostname: gh-${{ github.event.repository.name }}-${{ github.job }}-${{ github.run_id }}
+
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -148,13 +162,25 @@ jobs:
   pages:
     needs: release
     if: ${{ !inputs.dry_run && needs.release.result == 'success' }}
-    runs-on:
-      group: public-runner-group
-      labels: "gh-pb-runners-2c"
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write    # deploy-pages
+      id-token: write # deploy-pages, and the Tailscale federated identity
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
+      # Same reason as in `release`: deploy-pages calls the GitHub API. Its own
+      # credential, because `environment:` changes this job's OIDC subject to
+      # environment:github-pages.
+      - name: Join the tailnet for GitHub egress
+        uses: tailscale/github-action@306e68a486fd2350f2bfc3b19fcd143891a4a2d8 # v4.1.2
+        with:
+          oauth-client-id: ${{ vars.TS_CI_PAGES_CLIENT_ID }}
+          audience: ${{ vars.TS_CI_PAGES_AUDIENCE }}
+          tags: tag:ci-github-egress
+          hostname: gh-${{ github.event.repository.name }}-${{ github.job }}-${{ github.run_id }}
+
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4

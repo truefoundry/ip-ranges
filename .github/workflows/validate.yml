@@ -22,11 +22,18 @@ permissions:
 
 jobs:
   validate:
-    runs-on:
-      group: public-runner-group
-      labels: "gh-pb-runners-2c"
+    # ubuntu-latest, never the static-IP runner groups: a fork PR's copy of this
+    # file picks its own runs-on, and the org IP allow list trusts those IPs.
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      # Anonymous on purpose. The repo is public, and an authenticated checkout
+      # from a standard runner gets a 403 from the org IP allow list.
+      - name: Check out (anonymous)
+        run: |
+          git init -q .
+          git remote add origin "https://github.com/${GITHUB_REPOSITORY}.git"
+          git fetch -q --no-tags --depth=1 origin "+${GITHUB_SHA}:refs/remotes/origin/ci"
+          git checkout -q --detach origin/ci
 
       - uses: astral-sh/setup-uv@v5
         with:
@@ -42,18 +49,23 @@ jobs:
     # Show reviewers exactly which IPs a PR adds or removes, so nobody has to read raw JSON.
     # Informational only: `validate` is the gate, so a baseline that cannot be rebuilt
     # (an old branch, a schema change) must never block the PR.
+    #
+    # Builds the comment but does not post it: a fork PR's run has neither a write
+    # token nor an allow-listed IP. pr-diff-comment.yml posts it, running from main.
     if: github.event_name == 'pull_request'
-    runs-on:
-      group: public-runner-group
-      labels: "gh-pb-runners-2c"
+    runs-on: ubuntu-latest
     continue-on-error: true
-    permissions:
-      contents: read
-      pull-requests: write
     steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+      # Anonymous, as in `validate`. Full history plus the base branch, which the
+      # baseline build below reads as origin/<base>.
+      - name: Check out (anonymous)
+        run: |
+          git init -q .
+          git remote add origin "https://github.com/${GITHUB_REPOSITORY}.git"
+          git fetch -q --no-tags origin \
+            "+${GITHUB_SHA}:refs/remotes/origin/ci" \
+            "+refs/heads/${GITHUB_BASE_REF}:refs/remotes/origin/${GITHUB_BASE_REF}"
+          git checkout -q --detach origin/ci
 
       - uses: astral-sh/setup-uv@v5
         with:
@@ -108,10 +120,17 @@ jobs:
             tail -n +2 "${RUNNER_TEMP}/diff.md"
           } > "${RUNNER_TEMP}/comment.md"
 
-      - name: Comment on the PR
+      - name: Record the PR number for pr-diff-comment.yml
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh pr comment "${{ github.event.pull_request.number }}" \
-            --body-file "${RUNNER_TEMP}/comment.md" \
-            --edit-last --create-if-none
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: echo "$PR_NUMBER" > "${RUNNER_TEMP}/pr-number"
+
+      - name: Hand the comment to pr-diff-comment.yml
+        uses: actions/upload-artifact@v4
+        with:
+          name: ip-ranges-diff
+          path: |
+            ${{ runner.temp }}/comment.md
+            ${{ runner.temp }}/pr-number
+          if-no-files-found: error
+          retention-days: 1
