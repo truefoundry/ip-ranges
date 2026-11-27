@@ -1,0 +1,74 @@
+name: PR diff comment
+
+# Posts the "Proposed IP changes" comment that validate.yml's `diff` job builds.
+#
+# Split out of validate.yml because that job runs the PR's own code, from a fork
+# as often as not: it has no write token and no allow-listed IP, and must never
+# get either. workflow_run always runs THIS file as it is on main, in this repo's
+# context, so it can join the tailnet and write the comment. Everything it reads
+# from the artifact came from the PR's code and is treated as data.
+on:
+  workflow_run:
+    workflows: [Validate]
+    types: [completed]
+
+permissions:
+  contents: read
+
+jobs:
+  comment:
+    if: github.event.workflow_run.event == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read        # download the artifact from the Validate run
+      pull-requests: write # post the comment
+      id-token: write      # the Tailscale federated identity
+    steps:
+      # FIRST STEP: the artifact download and gh both call the GitHub API with
+      # GITHUB_TOKEN, which the org IP allow list filters. The credential only
+      # matches this file on main.
+      - name: Join the tailnet for GitHub egress
+        uses: tailscale/github-action@306e68a486fd2350f2bfc3b19fcd143891a4a2d8 # v4.1.2
+        with:
+          oauth-client-id: ${{ vars.TS_CI_PR_COMMENT_CLIENT_ID }}
+          audience: ${{ vars.TS_CI_PR_COMMENT_AUDIENCE }}
+          tags: tag:ci-github-egress
+          hostname: gh-${{ github.event.repository.name }}-${{ github.job }}-${{ github.run_id }}
+
+      # The diff job is informational and may not have produced one.
+      - name: Download the diff
+        id: download
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: ip-ranges-diff
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/diff
+
+      - name: Comment on the PR
+        if: steps.download.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          DIR: ${{ runner.temp }}/diff
+        run: |
+          # workflow_run.pull_requests is empty for fork PRs, so the number comes
+          # from the artifact, which the PR's code wrote. Check it is a number...
+          PR="$(tr -d '[:space:]' < "${DIR}/pr-number")"
+          if ! [[ "$PR" =~ ^[0-9]+$ ]]; then
+            echo "::error::pr-number in the artifact is not a number."
+            exit 1
+          fi
+
+          # ...and that it names the PR this run actually built, not someone else's.
+          PR_HEAD="$(gh pr view "$PR" --repo "$REPO" --json headRefOid --jq .headRefOid)"
+          if [ "$PR_HEAD" != "$HEAD_SHA" ]; then
+            echo "::warning::PR #${PR} is at ${PR_HEAD}, not ${HEAD_SHA}. Not commenting; the newer run will."
+            exit 0
+          fi
+
+          gh pr comment "$PR" --repo "$REPO" \
+            --body-file "${DIR}/comment.md" \
+            --edit-last --create-if-none
