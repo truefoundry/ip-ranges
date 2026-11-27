@@ -177,11 +177,11 @@ jobs:
     # the documented URL. The role (github-actions-oidc-ip-ranges-role, terraform-aws) can only
     # PutObject under ip-ranges/ and trusts only the assets-production environment, which is
     # restricted to main in the repo settings.
+    # ubuntu-latest with no tailnet: this job never calls GitHub (no checkout, no gh), only the
+    # Actions artifact service, AWS and the CDN, none of which sit behind the org IP allow list.
     needs: release
     if: ${{ !inputs.dry_run && needs.release.result == 'success' }}
-    runs-on:
-      group: public-runner-group
-      labels: "gh-pb-runners-2c"
+    runs-on: ubuntu-latest
     environment: assets-production
     permissions:
       contents: read
