@@ -159,6 +159,70 @@ jobs:
         with:
           path: site
 
+      - name: Upload the lists for the S3 mirror
+        if: ${{ !inputs.dry_run }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ip-ranges-lists
+          path: |
+            dist/global.json
+            dist/us.json
+            dist/global.txt
+            dist/us.txt
+          if-no-files-found: error
+          retention-days: 7
+
+  s3:
+    # Secondary copy at https://assets.production.truefoundry.com/ip-ranges/. GitHub Pages stays
+    # the documented URL. The role (github-actions-oidc-ip-ranges-role, terraform-aws) can only
+    # PutObject under ip-ranges/ and trusts only the assets-production environment, which is
+    # restricted to main in the repo settings.
+    # ubuntu-latest with no tailnet: this job never calls GitHub (no checkout, no gh), only the
+    # Actions artifact service, AWS and the CDN, none of which sit behind the org IP allow list.
+    needs: release
+    if: ${{ !inputs.dry_run && needs.release.result == 'success' }}
+    runs-on: ubuntu-latest
+    environment: assets-production
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      BUCKET: tfy-website-euwe1-production20221107184713217900000001
+      PREFIX: ip-ranges
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: ip-ranges-lists
+          path: lists
+
+      - uses: astral-sh/setup-uv@v5
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: eu-west-1
+
+      - name: Upload to S3
+        run: |
+          # The CDN's ip-ranges/* behavior sets Cache-Control; content types are set here.
+          for f in global us; do
+            uvx --from awscli aws s3 cp "lists/${f}.json" "s3://${BUCKET}/${PREFIX}/${f}.json" \
+              --content-type "application/json; charset=utf-8" --no-progress
+            uvx --from awscli aws s3 cp "lists/${f}.txt" "s3://${BUCKET}/${PREFIX}/${f}.txt" \
+              --content-type "text/plain; charset=utf-8" --no-progress
+          done
+
+      - name: Verify the CDN serves the new lists
+        run: |
+          for f in global.json us.json global.txt us.txt; do
+            url="https://assets.production.truefoundry.com/${PREFIX}/${f}"
+            if ! curl -fsS "$url" | cmp -s - "lists/${f}"; then
+              echo "::error::${url} does not match the built ${f}"
+              exit 1
+            fi
+          done
+          echo "S3 mirror matches the build."
+
   pages:
     needs: release
     if: ${{ !inputs.dry_run && needs.release.result == 'success' }}
