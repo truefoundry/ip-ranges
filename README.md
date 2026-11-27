@@ -65,7 +65,7 @@ Allowlist **two** entries:
 | --- | --- |
 | `gateway.truefoundry.ai` | Every regional gateway |
 | `us.gateway.truefoundry.ai` | North Virginia, San Francisco, Dallas, and Toronto |
-| `eu.gateway.truefoundry.ai` | Madrid, Gavle, and Doha |
+| `eu.gateway.truefoundry.ai` | Madrid and Gavle |
 | `sa.gateway.truefoundry.ai` | Sao Paulo |
 | `au.gateway.truefoundry.ai` | Sydney, Melbourne, and Singapore |
 | `as.gateway.truefoundry.ai` | Mumbai, Singapore, Doha, and Melbourne |
