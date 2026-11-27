@@ -70,7 +70,9 @@ Allowlist **two** entries:
 | `au.gateway.truefoundry.ai` | Sydney, Melbourne, and Singapore |
 | `as.gateway.truefoundry.ai` | Mumbai, Singapore, Doha, and Melbourne |
 
-If you pinned a single location such as `orf.gateway.truefoundry.ai`, use the entry with that `airport_code`. Cape Town (`cpt`) is not part of any multi-regional endpoint, so it is only covered by `gateway.truefoundry.ai` and `cpt.gateway.truefoundry.ai`.
+If you pinned a single location such as `orf.gateway.truefoundry.ai`, use the entry with that `airport_code`. Locations not listed in the table above, such as Cape Town (`cpt`), are not part of any multi-regional endpoint, so they are only covered by `gateway.truefoundry.ai` and their own `<airport_code>.gateway.truefoundry.ai` entry.
+
+The lists can include addresses for locations that do not carry traffic yet. They are published ahead of time so the [15-day notice](#when-addresses-change) applies before a location comes online.
 
 The gateway endpoint is configured per tenant. See [globally distributed SaaS gateway](https://www.truefoundry.com/docs/ai-gateway/globally-distributed-saas) for the locations and how to change it.
 
